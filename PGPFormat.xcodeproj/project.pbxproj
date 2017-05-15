@@ -1,0 +1,336 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C31EC9E806003EC6C0 /* Packet.swift */; };
+		FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C41EC9E806003EC6C0 /* PublicKey.swift */; };
+		FACE33CA1EC9E806003EC6C0 /* Signature.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C51EC9E806003EC6C0 /* Signature.swift */; };
+		FACE33CB1EC9E806003EC6C0 /* UserID.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C61EC9E806003EC6C0 /* UserID.swift */; };
+		FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C71EC9E806003EC6C0 /* Util.swift */; };
+		FACE33CE1EC9E81A003EC6C0 /* PGPFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */; };
+		FACE33D01EC9E88D003EC6C0 /* AsciiArmor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPFormat.h; sourceTree = "<group>"; };
+		FACE33BC1EC9E779003EC6C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FACE33C31EC9E806003EC6C0 /* Packet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Packet.swift; sourceTree = "<group>"; };
+		FACE33C41EC9E806003EC6C0 /* PublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicKey.swift; sourceTree = "<group>"; };
+		FACE33C51EC9E806003EC6C0 /* Signature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signature.swift; sourceTree = "<group>"; };
+		FACE33C61EC9E806003EC6C0 /* UserID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserID.swift; sourceTree = "<group>"; };
+		FACE33C71EC9E806003EC6C0 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
+		FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PGPFormat.swift; sourceTree = "<group>"; };
+		FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsciiArmor.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FACE33B41EC9E779003EC6C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FACE33AE1EC9E779003EC6C0 = {
+			isa = PBXGroup;
+			children = (
+				FACE33BA1EC9E779003EC6C0 /* PGPFormat */,
+				FACE33B91EC9E779003EC6C0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FACE33B91EC9E779003EC6C0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FACE33BA1EC9E779003EC6C0 /* PGPFormat */ = {
+			isa = PBXGroup;
+			children = (
+				FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */,
+				FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */,
+				FACE33C31EC9E806003EC6C0 /* Packet.swift */,
+				FACE33C41EC9E806003EC6C0 /* PublicKey.swift */,
+				FACE33C51EC9E806003EC6C0 /* Signature.swift */,
+				FACE33C61EC9E806003EC6C0 /* UserID.swift */,
+				FACE33C71EC9E806003EC6C0 /* Util.swift */,
+				FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */,
+				FACE33BC1EC9E779003EC6C0 /* Info.plist */,
+			);
+			path = PGPFormat;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		FACE33B51EC9E779003EC6C0 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		FACE33B71EC9E779003EC6C0 /* PGPFormat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FACE33C01EC9E779003EC6C0 /* Build configuration list for PBXNativeTarget "PGPFormat" */;
+			buildPhases = (
+				FACE33B31EC9E779003EC6C0 /* Sources */,
+				FACE33B41EC9E779003EC6C0 /* Frameworks */,
+				FACE33B51EC9E779003EC6C0 /* Headers */,
+				FACE33B61EC9E779003EC6C0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PGPFormat;
+			productName = PGPFormat;
+			productReference = FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FACE33AF1EC9E779003EC6C0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0830;
+				ORGANIZATIONNAME = "KryptCo, Inc.";
+				TargetAttributes = {
+					FACE33B71EC9E779003EC6C0 = {
+						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = W7AMYM5LPN;
+						LastSwiftMigration = 0830;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = FACE33B21EC9E779003EC6C0 /* Build configuration list for PBXProject "PGPFormat" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = FACE33AE1EC9E779003EC6C0;
+			productRefGroup = FACE33B91EC9E779003EC6C0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FACE33B71EC9E779003EC6C0 /* PGPFormat */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FACE33B61EC9E779003EC6C0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FACE33B31EC9E779003EC6C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FACE33D01EC9E88D003EC6C0 /* AsciiArmor.swift in Sources */,
+				FACE33CA1EC9E806003EC6C0 /* Signature.swift in Sources */,
+				FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */,
+				FACE33CE1EC9E81A003EC6C0 /* PGPFormat.swift in Sources */,
+				FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */,
+				FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */,
+				FACE33CB1EC9E806003EC6C0 /* UserID.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		FACE33BE1EC9E779003EC6C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		FACE33BF1EC9E779003EC6C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		FACE33C11EC9E779003EC6C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = W7AMYM5LPN;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = PGPFormat/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormat;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		FACE33C21EC9E779003EC6C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = W7AMYM5LPN;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = PGPFormat/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormat;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FACE33B21EC9E779003EC6C0 /* Build configuration list for PBXProject "PGPFormat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FACE33BE1EC9E779003EC6C0 /* Debug */,
+				FACE33BF1EC9E779003EC6C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FACE33C01EC9E779003EC6C0 /* Build configuration list for PBXNativeTarget "PGPFormat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FACE33C11EC9E779003EC6C0 /* Debug */,
+				FACE33C21EC9E779003EC6C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FACE33AF1EC9E779003EC6C0 /* Project object */;
+}

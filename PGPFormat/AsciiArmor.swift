@@ -23,16 +23,28 @@ public enum ArmorMessageBlock:String {
     case signature = "SIGNATURE"
     
     var begin:String {
-        return " -----BEGIN PGP \(self.rawValue)-----"
+        return "\(ArmorMessageBlock.begin)\(self.rawValue)\(ArmorMessageBlock.dashes)"
     }
     
     var end:String {
-        return " -----END PGP \(self.rawValue)-----"
+        return "\(ArmorMessageBlock.end)\(self.rawValue)\(ArmorMessageBlock.dashes)"
     }
+    
+    static let dashes   = "-----"
+    static let begin    = "-----BEGIN PGP "
+    static let end      = "-----END PGP "
 
     static var commentPrefix:String {
         return "Comment:"
     }
+    
+    
+    init?(line:String) {
+        let strippedHeader = line.replacingOccurrences(of: ArmorMessageBlock.begin, with: "").replacingOccurrences(of: ArmorMessageBlock.end, with: "").replacingOccurrences(of: ArmorMessageBlock.dashes, with: "")
+        
+        self.init(rawValue: strippedHeader)
+    }
+    
 }
 
 public enum AsciiArmorError:Error {
@@ -52,7 +64,7 @@ public struct AsciiArmorMessage {
         let lines = string.components(separatedBy: CharacterSet.newlines).filter { !$0.isEmpty }
         
         guard   lines.count > 0,
-                let headerBlockType = ArmorMessageBlock(rawValue: lines[0].trimmingCharacters(in: CharacterSet.whitespaces))
+                let headerBlockType = ArmorMessageBlock(line: lines[0].trimmingCharacters(in: CharacterSet.whitespaces))
         else {
             throw AsciiArmorError.noValidHeader
         }
@@ -70,22 +82,27 @@ public struct AsciiArmorMessage {
         self.crcChecksum = try lines[lines.count - 2].replacingOccurrences(of: "=", with: "").fromBase64()
 
         // footer
-        let footerBlockType = ArmorMessageBlock(rawValue: lines[lines.count - 1].trimmingCharacters(in: CharacterSet.whitespaces))
+        let footerBlockType = ArmorMessageBlock(line: lines[lines.count - 1].trimmingCharacters(in: CharacterSet.whitespaces))
         
         guard headerBlockType == footerBlockType else {
             throw AsciiArmorError.blockLineMismatch
         }
         
-        self.blockType = headerBlockType        
-        self.packetData = try lines[2 ..< (lines.count - 1)].joined(separator: "").fromBase64()
+        self.blockType = headerBlockType
+        
+        let packetsString = lines[2 ..< (lines.count - 2)].joined(separator: "")
+        self.packetData = try packetsString.fromBase64()
     }
     
-    public func toString() throws -> String {
-        return  "\(self.blockType.begin)\n"         +
-                "\(self.comment ?? "\n")\n"         +
-                "\(self.packetData.toBase64())\n"   +
-                "\(self.crcChecksum.toBase64())\n"  +
-                "\(self.blockType.end)\n"
+    public func toString() -> String {
+        let packetDataB64 = packetData.base64EncodedString(options: NSData.Base64EncodingOptions.lineLength64Characters)
+        
+        return  "\(blockType.begin)\n"                                      +
+                "\(ArmorMessageBlock.commentPrefix) \(comment ?? "\n")\n"   +
+                "\n"                                                        +
+                "\(packetDataB64)\n"                                        +
+                "=\(crcChecksum.toBase64())\n"                              +
+                "\(blockType.end)"
     }
     
 }

@@ -15,7 +15,20 @@
 		FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C71EC9E806003EC6C0 /* Util.swift */; };
 		FACE33CE1EC9E81A003EC6C0 /* PGPFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */; };
 		FACE33D01EC9E88D003EC6C0 /* AsciiArmor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */; };
+		FAEA70591ECC192D00920AAB /* PGPFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */; };
+		FAEA705B1ECC192D00920AAB /* PGPFormat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */; };
+		FAEA70621ECC197400920AAB /* pubkey1.txt in Resources */ = {isa = PBXBuildFile; fileRef = FAEA70611ECC197400920AAB /* pubkey1.txt */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FAEA705C1ECC192D00920AAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FACE33AF1EC9E779003EC6C0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FACE33B71EC9E779003EC6C0;
+			remoteInfo = PGPFormat;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -28,6 +41,10 @@
 		FACE33C71EC9E806003EC6C0 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PGPFormat.swift; sourceTree = "<group>"; };
 		FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsciiArmor.swift; sourceTree = "<group>"; };
+		FAEA70561ECC192D00920AAB /* PGPFormatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PGPFormatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PGPFormatTests.swift; sourceTree = "<group>"; };
+		FAEA705A1ECC192D00920AAB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FAEA70611ECC197400920AAB /* pubkey1.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pubkey1.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +55,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FAEA70531ECC192D00920AAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAEA705B1ECC192D00920AAB /* PGPFormat.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -45,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				FACE33BA1EC9E779003EC6C0 /* PGPFormat */,
+				FAEA70571ECC192D00920AAB /* PGPFormatTests */,
 				FACE33B91EC9E779003EC6C0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */,
+				FAEA70561ECC192D00920AAB /* PGPFormatTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,6 +87,8 @@
 		FACE33BA1EC9E779003EC6C0 /* PGPFormat */ = {
 			isa = PBXGroup;
 			children = (
+				FACE33BC1EC9E779003EC6C0 /* Info.plist */,
+				FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */,
 				FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */,
 				FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */,
 				FACE33C31EC9E806003EC6C0 /* Packet.swift */,
@@ -67,10 +96,18 @@
 				FACE33C51EC9E806003EC6C0 /* Signature.swift */,
 				FACE33C61EC9E806003EC6C0 /* UserID.swift */,
 				FACE33C71EC9E806003EC6C0 /* Util.swift */,
-				FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */,
-				FACE33BC1EC9E779003EC6C0 /* Info.plist */,
 			);
 			path = PGPFormat;
+			sourceTree = "<group>";
+		};
+		FAEA70571ECC192D00920AAB /* PGPFormatTests */ = {
+			isa = PBXGroup;
+			children = (
+				FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */,
+				FAEA70611ECC197400920AAB /* pubkey1.txt */,
+				FAEA705A1ECC192D00920AAB /* Info.plist */,
+			);
+			path = PGPFormatTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -105,12 +142,31 @@
 			productReference = FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		FAEA70551ECC192D00920AAB /* PGPFormatTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAEA705E1ECC192D00920AAB /* Build configuration list for PBXNativeTarget "PGPFormatTests" */;
+			buildPhases = (
+				FAEA70521ECC192D00920AAB /* Sources */,
+				FAEA70531ECC192D00920AAB /* Frameworks */,
+				FAEA70541ECC192D00920AAB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAEA705D1ECC192D00920AAB /* PBXTargetDependency */,
+			);
+			name = PGPFormatTests;
+			productName = PGPFormatTests;
+			productReference = FAEA70561ECC192D00920AAB /* PGPFormatTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		FACE33AF1EC9E779003EC6C0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0830;
 				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = "KryptCo, Inc.";
 				TargetAttributes = {
@@ -118,6 +174,11 @@
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = W7AMYM5LPN;
 						LastSwiftMigration = 0830;
+						ProvisioningStyle = Automatic;
+					};
+					FAEA70551ECC192D00920AAB = {
+						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = W7AMYM5LPN;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -135,6 +196,7 @@
 			projectRoot = "";
 			targets = (
 				FACE33B71EC9E779003EC6C0 /* PGPFormat */,
+				FAEA70551ECC192D00920AAB /* PGPFormatTests */,
 			);
 		};
 /* End PBXProject section */
@@ -144,6 +206,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAEA70541ECC192D00920AAB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAEA70621ECC197400920AAB /* pubkey1.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,7 +234,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FAEA70521ECC192D00920AAB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAEA70591ECC192D00920AAB /* PGPFormatTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FAEA705D1ECC192D00920AAB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FACE33B71EC9E779003EC6C0 /* PGPFormat */;
+			targetProxy = FAEA705C1ECC192D00920AAB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		FACE33BE1EC9E779003EC6C0 /* Debug */ = {
@@ -309,6 +395,30 @@
 			};
 			name = Release;
 		};
+		FAEA705F1ECC192D00920AAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEVELOPMENT_TEAM = W7AMYM5LPN;
+				INFOPLIST_FILE = PGPFormatTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		FAEA70601ECC192D00920AAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEVELOPMENT_TEAM = W7AMYM5LPN;
+				INFOPLIST_FILE = PGPFormatTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -329,6 +439,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		FAEA705E1ECC192D00920AAB /* Build configuration list for PBXNativeTarget "PGPFormatTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FAEA705F1ECC192D00920AAB /* Debug */,
+				FAEA70601ECC192D00920AAB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

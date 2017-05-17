@@ -27,14 +27,16 @@ public enum PublicKeyAlgorithm:UInt8 {
     }
 }
 
-public struct PublicKey {
+public struct PublicKey:Packetable {
     private let supportedVersion = 4
+    
+    public let tag:PacketTag
     
     public var created:Date
     public var algorithm:PublicKeyAlgorithm
     
-    public var modulus:Data
-    public var exponent:Data
+    private var modulus:Data
+    private var exponent:Data
     
     public enum ParsingError:Error {
         case tooShort(Int)
@@ -42,7 +44,18 @@ public struct PublicKey {
     }
     
     
-    public init(data:Data) throws {
+    public init(packet:Packet) throws {
+        
+        // get packet tag, ensure it's a public key type
+        switch packet.header.tag {
+        case .publicKey, .publicSubkey:
+            self.tag = packet.header.tag
+        default:
+            throw PacketableError.invalidPacketTag(packet.header.tag)
+        }
+        
+        // parse the body
+        let data = packet.body
         
         guard data.count > 5 else {
             throw FormatError.tooShort(data.count)
@@ -96,6 +109,34 @@ public struct PublicKey {
             exponent = Data(bytes: bytes[start ..< start + exponentLength])
         }
 
+    }
+    
+    public func toData() throws -> Data {
+        
+        var data = Data()
+        
+        // add supported version
+        data.append(contentsOf: [UInt8(supportedVersion)])
+        
+        // add created time
+        data.append(contentsOf: Int32(created.timeIntervalSince1970).bigEndian.fourByteBigEndianBytes())
+        
+        // add algorithm
+        data.append(contentsOf: [algorithm.rawValue])
+        
+        switch algorithm {
+        case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
+            
+            // modulus:  MPI two-octet scalar length then modulus
+            data.append(contentsOf: Int32(modulus.count*8).twoByteBigEndianBytes())
+            data.append(modulus)
+            
+            // exponent:  MPI two-octet scalar length then exponent
+            data.append(contentsOf: Int32(exponent.count*8).twoByteBigEndianBytes())
+            data.append(exponent)
+        }
+        
+        return data
     }
 
 }

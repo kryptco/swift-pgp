@@ -19,15 +19,15 @@ import Foundation
  */
 
 public enum ArmorMessageBlock:String {
-    case publicKey = "PUBLIC KEY"
+    case publicKey = "PUBLIC KEY BLOCK"
     case signature = "SIGNATURE"
     
     var begin:String {
-        return " -----BEGIN PGP \(self.rawValue) BLOCK-----"
+        return " -----BEGIN PGP \(self.rawValue)-----"
     }
     
     var end:String {
-        return " -----END PGP \(self.rawValue) BLOCK-----"
+        return " -----END PGP \(self.rawValue)-----"
     }
 
     static var commentPrefix:String {

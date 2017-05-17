@@ -144,6 +144,16 @@ public extension Int32 {
         }
         self.init(val)
     }
+    
+    func fourByteBigEndianBytes() -> [UInt8] {
+        let be = self.bigEndian
+        return [UInt8(be % 256), UInt8((be >> 8) % 256), UInt8((be >> 16) % 256), UInt8((be >> 24) % 256)]
+    }
+    
+    func twoByteBigEndianBytes() -> [UInt8] {
+        let be = self.bigEndian
+        return [UInt8(be % 256), UInt8((be >> 8) % 256)]
+    }
 }
 
 

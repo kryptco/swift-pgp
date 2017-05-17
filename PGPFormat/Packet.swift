@@ -6,8 +6,6 @@
 //  Copyright © 2017 KryptCo, Inc. All rights reserved.
 //
 
-
-
 import Foundation
 
 //MARK: Packet(s)
@@ -40,21 +38,68 @@ public struct Packet {
     public let body:Data
     
     public var length:Int {
-        return header.length + body.count
+        return header.realLength + body.count
+    }
+    
+    func tagByte() throws -> UInt8 {
+        let msb:UInt8 = 0b10000000
+        let format:UInt8 = header.length.newFormat ? 0b01000000 : 0b00000000
+        
+        var tag:UInt8
+        var lengthType:UInt8
+        if header.length.newFormat {
+            tag = header.tag.rawValue
+            lengthType = 0b00000000
+        } else {
+            tag = header.tag.rawValue << 2
+            
+            switch header.length.formatBytes.count {
+            case 1:
+                lengthType = PacketLength.OldFormatType.oneOctet.rawValue
+            case 2:
+                lengthType = PacketLength.OldFormatType.twoOctet.rawValue
+            case 4:
+                lengthType = PacketLength.OldFormatType.fourOctet.rawValue
+            default:
+                throw PacketError.invalidPacketLengthFormatByteLength(header.length.formatBytes.count)
+            }
+        }
+        
+        return msb | format | tag | lengthType
+    }
+    
+    public func toData() throws -> Data {
+        var data = Data()
+        
+        data.append(contentsOf: [try tagByte()])
+        data.append(contentsOf: header.length.formatBytes)
+        data.append(contentsOf: body)
+
+        return data
     }
 }
 
 // MARK: Packetable
 
-public protocol PacketReadable {
-    init(data:Data) throws
+public protocol Packetable {
+    var tag:PacketTag { get }
+    init(packet:Packet) throws
+    func toData() throws -> Data
 }
 
-public protocol PacketWritable {
-    func toPacket() throws -> Data
+public extension Packetable {
+    
+    public func toPacket() throws -> Packet {
+        let body = try self.toData()
+        let header = try PacketHeader(tag: self.tag, packetLength: PacketLength(body: body.count))
+        
+        return Packet(header: header, body: body)
+    }
 }
 
-public protocol Packetable: PacketReadable, PacketWritable {}
+public enum PacketableError:Error {
+    case invalidPacketTag(PacketTag)
+}
 
 // MARK: Errors
 public enum FormatError:Error {
@@ -72,9 +117,10 @@ public enum PacketError:Error {
     case unsupportedOldFormatLengthType(UInt8)
 
     case partial(UInt8)
+    
+    case bodyLengthTooLong(Int)
+    case invalidPacketLengthFormatByteLength(Int)
 }
-
-
 
 
 /**
@@ -99,22 +145,27 @@ public struct PacketHeader {
     public var tag:PacketTag
     
     private let tagLength = 1
-    public var lengthLength:Int
-    public var bodyLength:Int
+    
+    public var length:PacketLength
 
-    public var length:Int {
-        return tagLength + lengthLength
+    public var realLength:Int {
+        return tagLength + length.length
     }
     
     public func bodyRange() throws -> Range<Int> {
-        let start   = tagLength + lengthLength
-        let end     = start + bodyLength
+        let start   = tagLength + length.length
+        let end     = start + length.body
         
         guard start < end else {
             throw FormatError.badRange(start, end)
         }
         
         return start ..< end
+    }
+    
+    init(tag:PacketTag, packetLength:PacketLength) {
+        self.length = packetLength
+        self.tag = tag
     }
     
     public init(data:Data) throws {
@@ -135,30 +186,56 @@ public struct PacketHeader {
         
         if newFormat {            
             let packetLength = try PacketLength(newFormat: [UInt8](bytes.suffix(from: 1)))
+            let packetTag = try PacketTag(tag: firstOctet & 0b00111111)
+            self.init(tag: packetTag, packetLength: packetLength)
             
-            tag = try PacketTag(tag: firstOctet & 0b00111111)
-            lengthLength = packetLength.length
-            bodyLength = packetLength.value
         } else {
             let lengthType = firstOctet & 0b00000011
             let packetLength = try PacketLength(oldFormat: [UInt8](bytes.suffix(from: 1)), type: lengthType)
+            let packetTag = try PacketTag(tag: (firstOctet & 0b00111100)>>2)
             
-            tag = try PacketTag(tag: (firstOctet & 0b00111100)>>2)
-            lengthLength = packetLength.length
-            bodyLength = packetLength.value
+            self.init(tag: packetTag, packetLength: packetLength)
         }
     }
 }
 
-struct PacketLength {
+public struct PacketLength {
     
-    var length:Int
-    var value:Int
+    let length:Int
+    let body:Int
+    
+    let newFormat:Bool
+    let formatBytes:[UInt8]
+    
+    // currently creates old format bytes only
+    // todo: add new format
+    public init(body:Int) throws {
+        self.newFormat = false
+        self.body = body
+        
+        switch body {
+        case 0 ..< Int(UInt8.max):
+            length = 1
+            formatBytes = [UInt8(body)]
+        case 256 ..< Int(UInt16.max):
+            length = 2
+            formatBytes = Int32(body).twoByteBigEndianBytes()
+            
+        case Int(UInt16.max) ..< Int(UInt32.max):
+            length = 4
+            formatBytes = Int32(body).fourByteBigEndianBytes()
+        
+        default:
+            throw PacketError.bodyLengthTooLong(body)
+        }
+    }
     
     /**
         New Format Parsing
     */
     init(newFormat bytes:[UInt8]) throws {
+        newFormat = true
+        
         guard bytes.count > 0 else {
             throw FormatError.tooShort(bytes.count)
         }
@@ -166,14 +243,16 @@ struct PacketLength {
         switch Int(bytes[0]) {
         case 0...191: // one octet
             length = 1
-            value = Int(bytes[0])
+            body = Int(bytes[0])
+            formatBytes = [bytes[0]]
             
         case 192 ..< 224 where bytes.count > 1: // two octet
             let firstOctet = Int(bytes[0])
             let secondOctet = Int(bytes[1])
             
             length = 2
-            value = ((firstOctet - 192) << 8) + secondOctet + 192
+            body = ((firstOctet - 192) << 8) + secondOctet + 192
+            formatBytes = [UInt8](bytes[0...1])
             
         case 255 where bytes.count > 4: // five octet
             let secondOctet = Int(bytes[1])
@@ -182,8 +261,9 @@ struct PacketLength {
             let fifthOctet = Int(bytes[4])
             
             length = 5
-            value = (secondOctet << 24) | (thirdOctet << 16) | (fourthOctet << 8)  | fifthOctet
-            
+            body = (secondOctet << 24) | (thirdOctet << 16) | (fourthOctet << 8)  | fifthOctet
+            formatBytes = [UInt8](bytes[1...4])
+
         default:
             throw PacketError.unsupportedNewFormatLengthType(bytes[0])
         }
@@ -191,7 +271,7 @@ struct PacketLength {
     
     
     /**
-        Old Format Parsing
+        Length Format Parsing
         https://tools.ietf.org/html/rfc4880 section 4.2.1
      */
     enum OldFormatType:UInt8 {
@@ -199,7 +279,10 @@ struct PacketLength {
         case twoOctet = 1
         case fourOctet = 2
     }
+    
     init(oldFormat bytes:[UInt8], type:UInt8) throws {
+        newFormat = false
+        
         guard let lengthType = OldFormatType(rawValue: type) else {
             throw PacketError.unsupportedOldFormatLengthType(type)
         }
@@ -207,14 +290,18 @@ struct PacketLength {
         switch lengthType {
         case .oneOctet where bytes.count > 0:
             length = 1
-            value = Int(bytes[0])
+            body = Int(bytes[0])
+            formatBytes = [bytes[0]]
+
 
         case .twoOctet where bytes.count > 1:
             let firstOctet = Int(bytes[0])
             let secondOctet = Int(bytes[1])
             
             length = 2
-            value = (firstOctet << 8) | secondOctet
+            body = (firstOctet << 8) | secondOctet
+            formatBytes = [UInt8](bytes[0...1])
+
 
         case .fourOctet where bytes.count > 4:
             let firstOctet = Int(bytes[0])
@@ -223,7 +310,8 @@ struct PacketLength {
             let fourthOctet = Int(bytes[3])
 
             length = 4
-            value = (firstOctet << 24) | (secondOctet << 16) | (thirdOctet << 8)  | fourthOctet
+            body = (firstOctet << 24) | (secondOctet << 16) | (thirdOctet << 8)  | fourthOctet
+            formatBytes = [UInt8](bytes[0...3])
             
         default:
             throw FormatError.tooShort(bytes.count)
@@ -233,28 +321,6 @@ struct PacketLength {
 
 }
 
-
-/**
- 0        -- Reserved - a packet tag MUST NOT have this value
- 1        -- Public-Key Encrypted Session Key Packet
- 2        -- Signature Packet
- 3        -- Symmetric-Key Encrypted Session Key Packet
- 4        -- One-Pass Signature Packet
- 5        -- Secret-Key Packet
- 6        -- Public-Key Packet
- 7        -- Secret-Subkey Packet
- 8        -- Compressed Data Packet
- 9        -- Symmetrically Encrypted Data Packet
- 10       -- Marker Packet
- 11       -- Literal Data Packet
- 12       -- Trust Packet
- 13       -- User ID Packet
- 14       -- Public-Subkey Packet
- 17       -- User Attribute Packet
- 18       -- Sym. Encrypted and Integrity Protected Data Packet
- 19       -- Modification Detection Code Packet
- 60 to 63 -- Private or Experimental Values
- */
 public enum PacketTag:UInt8 {
     case signature      = 2
     case secretKey      = 5

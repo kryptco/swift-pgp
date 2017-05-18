@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		FA12EA8C1ECD1EA5001603BF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA12EA8B1ECD1EA5001603BF /* Security.framework */; };
+		FA12EA8F1ECE100C001603BF /* SignatureSubpacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */; };
+		FA12EA911ECE2457001603BF /* SignatureCreated.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA12EA901ECE2457001603BF /* SignatureCreated.swift */; };
 		FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C31EC9E806003EC6C0 /* Packet.swift */; };
 		FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C41EC9E806003EC6C0 /* PublicKey.swift */; };
@@ -33,6 +35,8 @@
 
 /* Begin PBXFileReference section */
 		FA12EA8B1ECD1EA5001603BF /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignatureSubpacket.swift; sourceTree = "<group>"; };
+		FA12EA901ECE2457001603BF /* SignatureCreated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignatureCreated.swift; sourceTree = "<group>"; };
 		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPFormat.h; sourceTree = "<group>"; };
 		FACE33BC1EC9E779003EC6C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -106,6 +110,8 @@
 				FACE33C31EC9E806003EC6C0 /* Packet.swift */,
 				FACE33C41EC9E806003EC6C0 /* PublicKey.swift */,
 				FACE33C51EC9E806003EC6C0 /* Signature.swift */,
+				FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */,
+				FA12EA901ECE2457001603BF /* SignatureCreated.swift */,
 				FACE33C61EC9E806003EC6C0 /* UserID.swift */,
 				FACE33C71EC9E806003EC6C0 /* Util.swift */,
 			);
@@ -276,6 +282,8 @@
 				FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */,
 				FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */,
 				FACE33CB1EC9E806003EC6C0 /* UserID.swift in Sources */,
+				FA12EA8F1ECE100C001603BF /* SignatureSubpacket.swift in Sources */,
+				FA12EA911ECE2457001603BF /* SignatureCreated.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

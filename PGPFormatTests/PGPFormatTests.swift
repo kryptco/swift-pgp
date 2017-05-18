@@ -126,7 +126,7 @@ class PGPFormatTests: XCTestCase {
                 let packetOriginal = packet
                 let sigOriginal = try Signature(packet: packetOriginal)
                 
-                let packetSerialized = try pubKeyOriginal.toPacket()
+                let packetSerialized = try sigOriginal.toPacket()
                 let sigDeserialized = try Signature(packet: packetSerialized)
                 
                 guard packetSerialized.body == packetOriginal.body else {

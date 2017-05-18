@@ -95,6 +95,10 @@ public extension Packetable {
         
         return Packet(header: header, body: body)
     }
+    
+    public func toData() throws -> Data {
+        return try self.toPacket().toData()
+    }
 }
 
 public enum PacketableError:Error {

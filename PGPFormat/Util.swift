@@ -8,6 +8,8 @@
 
 
 import Foundation
+import Security
+import CommonCrypto
 
 public enum DataError : Error {
     case encoding
@@ -16,18 +18,42 @@ public enum DataError : Error {
     case range(Range<Int>)
 }
 
-public extension Data {
-    
-    static func random(size:Int) throws -> Data {
-        var result = [UInt8](repeating: 0, count: size)
-        let res = SecRandomCopyBytes(kSecRandomDefault, size, &result)
-        
-        guard res == 0 else {
-            throw DataError.cryptoRandom
+public extension Int {
+    var numBits:Int {
+        guard self > 0 else {
+            return 0
         }
         
-        return Data(bytes: result)
+        return Int(floor(log2(Double(self)))) + 1
     }
+}
+
+public extension Data {
+    
+    var numBits:Int {
+        guard count > 0 else {
+            return 0
+        }
+        
+        let dataBytes = self.bytes
+        
+        let firstByteBits = Int(dataBytes[0]).numBits
+        let remaindingBytesBits = (count - 1)*8
+        
+        return firstByteBits + remaindingBytesBits
+    }
+    
+    var crc24Checksum:Data {
+        var dataBytes = self.bytes
+        let checksum = crc_octets(&dataBytes, dataBytes.count)
+        
+        guard checksum < Int(UInt32.max) else {
+            return Data()
+        }
+        
+        return Data(bytes: UInt32(checksum).threeByteBigEndianBytes())
+    }
+
     
     func toBase64(_ urlEncoded:Bool = false) -> String {
         var result = self.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
@@ -134,25 +160,27 @@ public extension Data {
     }
 }
 
-public extension Int32 {
+public extension UInt32 {
     init(bigEndianBytes: [UInt8]) {
-        let count = Int32(bigEndianBytes.count)
+        let count = UInt32(bigEndianBytes.count)
         
-        var val : Int32 = 0
-        for i in Int32(0) ..< count {
-            val += Int32(bigEndianBytes[Int(i)]) << ((count - 1 - i) * 8)
+        var val : UInt32 = 0
+        for i in UInt32(0) ..< count {
+            val += UInt32(bigEndianBytes[Int(i)]) << ((count - 1 - i) * 8)
         }
         self.init(val)
     }
     
     func fourByteBigEndianBytes() -> [UInt8] {
-        let be = self.bigEndian
-        return [UInt8(be % 256), UInt8((be >> 8) % 256), UInt8((be >> 16) % 256), UInt8((be >> 24) % 256)]
+        return [UInt8((self >> 24) % 256), UInt8((self >> 16) % 256), UInt8((self >> 8) % 256), UInt8((self) % 256)]
+    }
+    
+    func threeByteBigEndianBytes() -> [UInt8] {
+        return [UInt8((self >> 16) % 256), UInt8((self >> 8) % 256), UInt8((self) % 256)]
     }
     
     func twoByteBigEndianBytes() -> [UInt8] {
-        let be = self.bigEndian
-        return [UInt8(be % 256), UInt8((be >> 8) % 256)]
+        return [UInt8((self >> 8) % 256), UInt8((self) % 256)]
     }
 }
 

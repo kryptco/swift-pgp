@@ -35,8 +35,8 @@ public struct PublicKey:Packetable {
     public var created:Date
     public var algorithm:PublicKeyAlgorithm
     
-    private var modulus:Data
-    private var exponent:Data
+    public var modulus:Data
+    public var exponent:Data
     
     public enum ParsingError:Error {
         case tooShort(Int)
@@ -69,7 +69,7 @@ public struct PublicKey:Packetable {
         }
         
         // created (1 ..< 5)
-        let creationSeconds = Double(Int32(bigEndianBytes: [UInt8](bytes[1 ..< 5])))
+        let creationSeconds = Double(UInt32(bigEndianBytes: [UInt8](bytes[1 ..< 5])))
         created = Date(timeIntervalSince1970: creationSeconds)
         
         // algo (5)
@@ -83,7 +83,7 @@ public struct PublicKey:Packetable {
                 throw FormatError.tooShort(data.count)
             }
             
-            let modulusLength = Int(Int32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])))/8
+            let modulusLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8
             
             start += 2
             guard data.count >= start + modulusLength else {
@@ -99,7 +99,7 @@ public struct PublicKey:Packetable {
                 throw FormatError.tooShort(data.count)
             }
             
-            let exponentLength = Int(Int32(bigEndianBytes: [UInt8](bytes[start ..< (start+2)])))/8
+            let exponentLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< (start+2)])) + 7)/8
             
             start += 2
             guard data.count >= start + exponentLength else {
@@ -119,7 +119,7 @@ public struct PublicKey:Packetable {
         data.append(contentsOf: [UInt8(supportedVersion)])
         
         // add created time
-        data.append(contentsOf: Int32(created.timeIntervalSince1970).bigEndian.fourByteBigEndianBytes())
+        data.append(contentsOf: UInt32(created.timeIntervalSince1970).fourByteBigEndianBytes())
         
         // add algorithm
         data.append(contentsOf: [algorithm.rawValue])
@@ -128,11 +128,11 @@ public struct PublicKey:Packetable {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
             
             // modulus:  MPI two-octet scalar length then modulus
-            data.append(contentsOf: Int32(modulus.count*8).twoByteBigEndianBytes())
+            data.append(contentsOf: UInt32(modulus.numBits).twoByteBigEndianBytes())
             data.append(modulus)
             
             // exponent:  MPI two-octet scalar length then exponent
-            data.append(contentsOf: Int32(exponent.count*8).twoByteBigEndianBytes())
+            data.append(contentsOf: UInt32(exponent.numBits).twoByteBigEndianBytes())
             data.append(exponent)
         }
         
@@ -140,3 +140,5 @@ public struct PublicKey:Packetable {
     }
 
 }
+
+

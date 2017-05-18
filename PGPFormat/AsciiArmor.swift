@@ -51,7 +51,9 @@ public enum AsciiArmorError:Error {
     case noValidHeader
     case blockLineMismatch
     case missingChecksum
+    case invalidChecksum
     case invalidArmor
+    
 }
 public struct AsciiArmorMessage {
     
@@ -60,6 +62,17 @@ public struct AsciiArmorMessage {
     public let blockType:ArmorMessageBlock
     public var comment:String?
     
+    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created by swift-pgp") throws {
+        var packetData = Data()
+        try packets.forEach {
+            try packetData.append($0.toData())
+        }
+        self.packetData = packetData
+        self.crcChecksum = packetData.crc24Checksum
+        self.blockType = blockType
+        self.comment = comment
+    }
+
     public init(string:String) throws {
         let lines = string.components(separatedBy: CharacterSet.newlines).filter { !$0.isEmpty }
         
@@ -90,9 +103,15 @@ public struct AsciiArmorMessage {
         
         self.blockType = headerBlockType
         
-        let packetsString = lines[2 ..< (lines.count - 2)].joined(separator: "")
-        self.packetData = try packetsString.fromBase64()
+        let packets = try lines[2 ..< (lines.count - 2)].joined(separator: "").fromBase64()
+        
+        guard self.crcChecksum == packets.crc24Checksum else {
+            throw AsciiArmorError.invalidChecksum
+        }
+        
+        self.packetData = packets
     }
+    
     
     public func toString() -> String {
         let packetDataB64 = packetData.base64EncodedString(options: NSData.Base64EncodingOptions.lineLength64Characters)

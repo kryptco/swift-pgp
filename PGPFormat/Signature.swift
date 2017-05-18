@@ -14,7 +14,11 @@ import Foundation
     https://tools.ietf.org/html/rfc4880
     Section 5.2.1
 */
-public struct Signature {
+public struct Signature:Packetable {
+    
+    public var tag:PacketTag {
+        return .signature
+    }
     
     public enum Kind:UInt8 {
         case binaryDocument = 0
@@ -70,7 +74,13 @@ public struct Signature {
     
     public var signature:Data
 
-    public init(data:Data) throws {
+    public init(packet:Packet) throws {
+        guard packet.header.tag == .signature else {
+            throw PacketableError.invalidPacketTag(packet.header.tag)
+        }
+
+        let data = packet.body
+        
         guard data.count >= 6 else {
             throw FormatError.tooShort(data.count)
         }
@@ -93,7 +103,7 @@ public struct Signature {
         
         
         // hashed subpackets
-        let hashedDataLength = Int(Int32(bigEndianBytes: [UInt8](bytes[4 ... 5])))
+        let hashedDataLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[4 ... 5])))
         
         var ptr = 6
         guard bytes.count >= ptr + hashedDataLength else {
@@ -109,7 +119,7 @@ public struct Signature {
             throw FormatError.tooShort(bytes.count)
         }
         
-        let unhashedDataLength = Int(Int32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])))
+        let unhashedDataLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])))
         ptr += 2
         
         guard bytes.count >= ptr + unhashedDataLength else {
@@ -137,7 +147,7 @@ public struct Signature {
                 throw FormatError.tooShort(bytes.count)
             }
             
-            let signatureLength = Int(Int32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])))/8
+            let signatureLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
             ptr += 2
             
             guard bytes.count >= ptr + signatureLength else {
@@ -151,6 +161,24 @@ public struct Signature {
             
         }
 
+    }
+    
+    public func toData() throws -> Data {
+        var data = Data()
+        
+        data.append(contentsOf: [kind.rawValue])
+        data.append(contentsOf: [publicKeyAlgorithm.rawValue])
+        data.append(contentsOf: [hashAlgorithm.rawValue])
+        
+        // hashed subpackets
+        
+        // un-hashed subpackets
+        
+        // signature MPI
+        data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())
+        data.append(signature)
+        
+        return data
     }
 
 }

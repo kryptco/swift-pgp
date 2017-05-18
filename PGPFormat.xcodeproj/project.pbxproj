@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FA12EA8C1ECD1EA5001603BF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA12EA8B1ECD1EA5001603BF /* Security.framework */; };
 		FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C31EC9E806003EC6C0 /* Packet.swift */; };
 		FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C41EC9E806003EC6C0 /* PublicKey.swift */; };
@@ -31,6 +32,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FA12EA8B1ECD1EA5001603BF /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPFormat.h; sourceTree = "<group>"; };
 		FACE33BC1EC9E779003EC6C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -52,6 +54,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA12EA8C1ECD1EA5001603BF /* Security.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,12 +69,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FA12EA8A1ECD1EA5001603BF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FA12EA8B1ECD1EA5001603BF /* Security.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		FACE33AE1EC9E779003EC6C0 = {
 			isa = PBXGroup;
 			children = (
 				FACE33BA1EC9E779003EC6C0 /* PGPFormat */,
 				FAEA70571ECC192D00920AAB /* PGPFormatTests */,
 				FACE33B91EC9E779003EC6C0 /* Products */,
+				FA12EA8A1ECD1EA5001603BF /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -128,6 +140,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = FACE33C01EC9E779003EC6C0 /* Build configuration list for PBXNativeTarget "PGPFormat" */;
 			buildPhases = (
+				FA12EA891ECD1D92001603BF /* CommonCrypto */,
 				FACE33B31EC9E779003EC6C0 /* Sources */,
 				FACE33B41EC9E779003EC6C0 /* Frameworks */,
 				FACE33B51EC9E779003EC6C0 /* Headers */,
@@ -146,6 +159,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = FAEA705E1ECC192D00920AAB /* Build configuration list for PBXNativeTarget "PGPFormatTests" */;
 			buildPhases = (
+				FA12EA8D1ECD21C5001603BF /* CommonCrypto */,
 				FAEA70521ECC192D00920AAB /* Sources */,
 				FAEA70531ECC192D00920AAB /* Frameworks */,
 				FAEA70541ECC192D00920AAB /* Resources */,
@@ -218,6 +232,37 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FA12EA891ECD1D92001603BF /* CommonCrypto */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = CommonCrypto;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "modulesDirectory=$DERIVED_FILES_DIR/modules\nmodulesMap=$modulesDirectory/module.modulemap\nmodulesMapTemp=$modulesDirectory/module.modulemap.tmp\n\nmkdir -p \"$modulesDirectory\"\n\ncat > \"$modulesMapTemp\" << MAP\nmodule CommonCrypto [system] {\n    header \"$SDKROOT/usr/include/CommonCrypto/CommonCrypto.h\"\n    export *\n}\nMAP\n\ndiff \"$modulesMapTemp\" \"$modulesMap\" >/dev/null 2>/dev/null\nif [[ $? != 0 ]] ; then\nmv \"$modulesMapTemp\" \"$modulesMap\"\nelse\nrm \"$modulesMapTemp\"\nfi";
+		};
+		FA12EA8D1ECD21C5001603BF /* CommonCrypto */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = CommonCrypto;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "modulesDirectory=$DERIVED_FILES_DIR/modules\nmodulesMap=$modulesDirectory/module.modulemap\nmodulesMapTemp=$modulesDirectory/module.modulemap.tmp\n\nmkdir -p \"$modulesDirectory\"\n\ncat > \"$modulesMapTemp\" << MAP\nmodule CommonCrypto [system] {\n    header \"$SDKROOT/usr/include/CommonCrypto/CommonCrypto.h\"\n    export *\n}\nMAP\n\ndiff \"$modulesMapTemp\" \"$modulesMap\" >/dev/null 2>/dev/null\nif [[ $? != 0 ]] ; then\nmv \"$modulesMapTemp\" \"$modulesMap\"\nelse\nrm \"$modulesMapTemp\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		FACE33B31EC9E779003EC6C0 /* Sources */ = {
@@ -447,6 +492,7 @@
 				FAEA70601ECC192D00920AAB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

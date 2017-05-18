@@ -219,11 +219,11 @@ public struct PacketLength {
             formatBytes = [UInt8(body)]
         case 256 ..< Int(UInt16.max):
             length = 2
-            formatBytes = Int32(body).twoByteBigEndianBytes()
+            formatBytes = UInt32(body).twoByteBigEndianBytes()
             
         case Int(UInt16.max) ..< Int(UInt32.max):
             length = 4
-            formatBytes = Int32(body).fourByteBigEndianBytes()
+            formatBytes = UInt32(body).fourByteBigEndianBytes()
         
         default:
             throw PacketError.bodyLengthTooLong(body)

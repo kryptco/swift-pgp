@@ -61,6 +61,7 @@ public struct Signature:Packetable {
     
     public enum SerializingError:Error {
         case tooManySubpackets
+        case signatureTooShort
     }
 
     
@@ -193,6 +194,13 @@ public struct Signature:Packetable {
         try unhashedSubpackets.forEach {
             data.append(try $0.toData())
         }
+        
+        // left 16 bits
+        guard signature.count >= 2 else {
+            throw SerializingError.signatureTooShort
+        }
+        data.append(signature.subdata(in: 0 ..< 2))
+
         
         // signature MPI
         data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())

@@ -126,6 +126,9 @@ class PGPFormatTests: XCTestCase {
                 let packetOriginal = packet
                 let sigOriginal = try Signature(packet: packetOriginal)
                 
+                print(sigOriginal.signature.numBits)
+                print(UInt32(sigOriginal.signature.numBits).twoByteBigEndianBytes())
+                
                 let packetSerialized = try sigOriginal.toPacket()
                 let sigDeserialized = try Signature(packet: packetSerialized)
                 

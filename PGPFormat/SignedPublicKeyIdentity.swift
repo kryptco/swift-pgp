@@ -45,7 +45,7 @@ public struct PublicKeyIdentityToSign {
         return dataToHash
     }
     
-    public func signedPublicKey(hash:Data, hashAlgorithm:Signature.HashAlgorithm, signatureData:Data) throws -> Signature {
+    public func signedPublicKey(hash:Data, hashAlgorithm:Signature.HashAlgorithm, signatureData:Data) throws -> SignedPublicKeyIdentity {
         var bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created)
         
         bareSignature.unhashedSubpacketables = try [SignatureIssuer(keyID: publicKey.keyID())]
@@ -57,9 +57,8 @@ public struct PublicKeyIdentityToSign {
         bareSignature.leftTwoHashBytes = [UInt8](hash.bytes[0...1])
         bareSignature.signature = signatureData
         
-        return bareSignature
+        return SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, signature: bareSignature)
     }
-    
 }
 
 public enum PublicKeyIdentitySiginingError:Error {

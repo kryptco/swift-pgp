@@ -184,48 +184,13 @@ class PGPFormatTests: XCTestCase {
             let userID = try UserID(packet: packets[1])
             let signature = try Signature(packet: packets[2])
             
-            var dataToHash = Data()
-            dataToHash.append(contentsOf: [0x99])
+            let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
+            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID, created: created)
             
-            // pubkey length + data
-            let publicKeyPacketData = try publicKey.toData()
-            let pubKeyLengthBytes = UInt32(publicKeyPacketData.count).twoByteBigEndianBytes()
-            dataToHash.append(contentsOf: pubKeyLengthBytes)
-            dataToHash.append(publicKeyPacketData)  
-
-            // userid byte, length + data
-            let userIdPacketData = try userID.toData()
-            let userIdLengthBytes = UInt32(userIdPacketData.count).fourByteBigEndianBytes()
-            dataToHash.append(contentsOf: [0xB4])
-            dataToHash.append(contentsOf: userIdLengthBytes)
-            dataToHash.append(userIdPacketData)
+            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm)
             
-            // add signature data
-            /**
-                 A V4 signature hashes the packet bodystarting from its first field, the version number, through the end
-                 of the hashed subpacket data.  Thus, the fields hashed are the
-                 signature version, the signature type, the public-key algorithm, the
-                 hash algorithm, the hashed subpacket length, and the hashed
-                 subpacket body.
-                     
-             */
-            let signatureData = try signature.signedData()
-            dataToHash.append(signatureData)
-            
-            // trailer
-            /**
-                 V4 signatures also hash in a final trailer of six octets: the
-                 version of the Signature packet, i.e., 0x04; 0xFF; and a four-octet,
-                 big-endian number that is the length of the hashed data from the
-                 Signature packet (note that this number does not include these final
-                 six octets).
-             */
-            dataToHash.append(contentsOf: [UInt8(signature.supportedVersion)])
-            dataToHash.append(contentsOf: [0xFF])
-            dataToHash.append(contentsOf: UInt32(signatureData.count).fourByteBigEndianBytes())
-            
-            // figure out   hash function
             var hash:Data
+
             switch signature.hashAlgorithm {
             case .sha1:
                 hash = dataToHash.SHA1

@@ -170,11 +170,11 @@ public struct Signature:Packetable {
 
     }
     
-    public init(bare kind:Kind, publicKeyAlgorithm:PublicKeyAlgorithm, hashAlgorithm:HashAlgorithm, created:Date) {
+    public init(bare kind:Kind, publicKeyAlgorithm:PublicKeyAlgorithm, hashAlgorithm:HashAlgorithm, created:Date, otherSubpacketables:[SignatureSubpacketable] = []) {
         self.kind = kind
         self.publicKeyAlgorithm = publicKeyAlgorithm
         self.hashAlgorithm = hashAlgorithm
-        self.hashedSubpacketables = [SignatureCreated(date: created)]
+        self.hashedSubpacketables = [SignatureCreated(date: created)] + otherSubpacketables
         self.unhashedSubpacketables = []
         self.leftTwoHashBytes = []
         self.signature = Data()

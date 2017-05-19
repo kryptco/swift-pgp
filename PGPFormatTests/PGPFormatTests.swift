@@ -174,7 +174,7 @@ class PGPFormatTests: XCTestCase {
         }
     }
     
-    // Test public key signature verification
+    // Test signature hash
     func testSignatureHashMatchesLeft16Bits() {
         do  {
             let pubMsg = try AsciiArmorMessage(string: pubkey1)
@@ -217,6 +217,54 @@ class PGPFormatTests: XCTestCase {
             
         }
     }
+    
+    // Test output a simple public
+    func testSimplePublicKeyOutput() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkey1)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            let publicKey = try PublicKey(packet: packets[0])
+            let userID = try UserID(packet: packets[1])
+            let signature = try Signature(packet: packets[3])
+            
+            let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
+            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID, created: created)
+            
+            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm)
+            
+            var hash:Data
+
+            switch signature.hashAlgorithm {
+            case .sha1:
+                hash = dataToHash.SHA1
+            case .sha224:
+                hash = dataToHash.SHA224
+            case .sha256:
+                hash = dataToHash.SHA256
+            case .sha384:
+                hash = dataToHash.SHA384
+            case .sha512:
+                hash = dataToHash.SHA512
+            }
+            
+            let attributes = [SignatureSubpacketable](signature.hashedSubpacketables[1 ..< signature.hashedSubpacketables.count])
+            let signedPublicKey = try pubKeyToSign.signedPublicKey(hash: hash, hashAlgorithm: signature.hashAlgorithm, attributes: attributes, signatureData: signature.signature)
+            
+            let outPackets = try signedPublicKey.toPackets()
+            let outMsg = try AsciiArmorMessage(packets: outPackets, blockType: ArmorMessageBlock.publicKey).toString()
+            
+            let inPackets = try [Packet](data: AsciiArmorMessage(string: outMsg).packetData)
+            
+            print(inPackets)
+            
+            print(outMsg)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
+
 
 
 

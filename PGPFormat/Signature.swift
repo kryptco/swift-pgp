@@ -21,9 +21,13 @@ public struct Signature:Packetable {
     }
     
     public enum Kind:UInt8 {
-        case binaryDocument = 0
-        case subKey = 18
-        case primaryKey = 19
+        case binaryDocument = 0x00
+        case userID = 0x10
+        case personalUserID = 0x11
+        case casualUserID = 0x12
+        case positiveUserID = 0x13
+        case subKey = 0x18
+        case primaryKey = 0x19
         
         init(type:UInt8) throws {
             guard let sigType = Kind(rawValue: type) else {
@@ -75,10 +79,12 @@ public struct Signature:Packetable {
     public var publicKeyAlgorithm:PublicKeyAlgorithm
     public var hashAlgorithm:HashAlgorithm
     
-    public var hashedSubpackets:[SignatureSubpacket]
-    public var unhashedSubpackets:[SignatureSubpacket]
+    public var hashedSubpacketables:[SignatureSubpacketable]
+    public var unhashedSubpacketables:[SignatureSubpacketable]
     
     public var signature:Data
+    
+    public var leftTwoHashBytes:[UInt8]
 
     public init(packet:Packet) throws {
         guard packet.header.tag == .signature else {
@@ -110,7 +116,7 @@ public struct Signature:Packetable {
             throw FormatError.tooShort(bytes.count)
         }
         
-        hashedSubpackets = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + hashedDataLength)]))
+        hashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + hashedDataLength)])).toSignatureSubpacketables()
         
         ptr += hashedDataLength
 
@@ -126,22 +132,23 @@ public struct Signature:Packetable {
             throw FormatError.tooShort(bytes.count)
         }
         
-        unhashedSubpackets = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + unhashedDataLength)]))
+        unhashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + unhashedDataLength)])).toSignatureSubpacketables()
         ptr += unhashedDataLength
         
         
         // left 16 bits of signed hash
-        // guard bytes.count >= ptr + 2 else {
-        //    throw FormatError.tooShort(bytes.count)
-        // }
+         guard bytes.count >= ptr + 2 else {
+            throw FormatError.tooShort(bytes.count)
+         }
         
         // ignoring
-        // _ = [UInt8](bytes[ptr ... (ptr + 1)])
+        leftTwoHashBytes = [UInt8](bytes[ptr ... (ptr + 1)])
         
+        ptr += 2 // jump two-octets for left 16 bits of sig
+
         // signature MPI
         switch publicKeyAlgorithm {
         case .rsaEncryptOrSign, .rsaSignOnly:
-            ptr += 2 // skip two-octets for left 16 bits of sig
             
             guard bytes.count >= ptr + 2 else {
                 throw FormatError.tooShort(bytes.count)
@@ -163,7 +170,17 @@ public struct Signature:Packetable {
 
     }
     
-    public func toData() throws -> Data {
+    public init(bare kind:Kind, publicKeyAlgorithm:PublicKeyAlgorithm, hashAlgorithm:HashAlgorithm, created:Date) {
+        self.kind = kind
+        self.publicKeyAlgorithm = publicKeyAlgorithm
+        self.hashAlgorithm = hashAlgorithm
+        self.hashedSubpacketables = [SignatureCreated(date: created)]
+        self.unhashedSubpacketables = []
+        self.leftTwoHashBytes = []
+        self.signature = Data()
+    }
+    
+    public func signedData() throws -> Data {
         var data = Data()
         
         data.append(contentsOf: [UInt8(supportedVersion)])
@@ -172,6 +189,7 @@ public struct Signature:Packetable {
         data.append(contentsOf: [hashAlgorithm.rawValue])
         
         // hashed subpackets
+        let hashedSubpackets = try hashedSubpacketables.map({ try $0.toSubpacket() })
         let hashedSubpacketLength = hashedSubpackets.reduce(0, { $0 + $1.length })
         guard hashedSubpacketLength <= Int(UInt32.max) else {
             throw SerializingError.tooManySubpackets
@@ -183,7 +201,15 @@ public struct Signature:Packetable {
             data.append(try $0.toData())
         }
         
+        return data
+    }
+
+    
+    public func toData() throws -> Data {
+        var data = try signedData()
+        
         // un-hashed subpackets
+        let unhashedSubpackets = try unhashedSubpacketables.map({ try $0.toSubpacket() })
         let unhashedSubpacketLength = unhashedSubpackets.reduce(0, { $0 + $1.length })
         guard unhashedSubpacketLength <= Int(UInt32.max) else {
             throw SerializingError.tooManySubpackets
@@ -196,11 +222,7 @@ public struct Signature:Packetable {
         }
         
         // left 16 bits
-        guard signature.count >= 2 else {
-            throw SerializingError.signatureTooShort
-        }
-        data.append(signature.subdata(in: 0 ..< 2))
-
+        data.append(contentsOf: leftTwoHashBytes)
         
         // signature MPI
         data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())

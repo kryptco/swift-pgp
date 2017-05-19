@@ -9,6 +9,8 @@
 import Foundation
 
 
+
+
 // MARK: SignatureSubpacketable
 
 public protocol SignatureSubpacketable {
@@ -24,11 +26,7 @@ public extension SignatureSubpacketable {
         let header = try SignatureSubpacketHeader(type: self.type, bodyLength: body.count)
         
         return SignatureSubpacket(header: header, body: body)
-    }
-    
-    public func toData() throws -> Data {
-        return try self.toSubpacket().toData()
-    }
+    }    
 }
 
 public enum SignatureSubpacketableError:Error {
@@ -62,6 +60,27 @@ public extension Array where Element == SignatureSubpacket {
         }
         
         self = packets
+    }
+    
+    public func toSignatureSubpacketables() throws -> [SignatureSubpacketable] {
+        var subpacketables = [SignatureSubpacketable]()
+        
+        for packet in self {
+            switch packet.header.subpacketType {
+            case .created:
+                try subpacketables.append(SignatureCreated(packet: packet))
+            case .keyExpires:
+                try subpacketables.append(SignatureKeyExpires(packet: packet))
+            case .issuer:
+                try subpacketables.append(SignatureIssuer(packet: packet))
+            case .keyFlags:
+                try subpacketables.append(SignatureKeyFlags(packet: packet))
+            default:
+                try subpacketables.append(SignatureUnparsedSubpacket(packet: packet))
+            }
+        }
+        
+        return subpacketables
     }
 }
 
@@ -112,24 +131,26 @@ public struct SignatureSubpacketHeader {
         self.subpacketType = type
         self.bodyLength = bodyLength
         
-        switch bodyLength {
+        let realLength = bodyLength + typeLength
+        
+        switch realLength {
         case 0 ..< 192:
             self.lengthLength = 1
-            self.lengthBytes = [UInt8(bodyLength)]
+            self.lengthBytes = [UInt8(realLength)]
             
         case 192 ..< 8384:
             self.lengthLength = 2
             
-            let firstByte = UInt8((UInt16(bodyLength - 192) >> 8) + 192)
-            let secondByte = UInt8((bodyLength - 192) % Int(UInt8.max))
+            let firstByte = UInt8((UInt16(realLength - 192) >> 8) + 192)
+            let secondByte = UInt8((realLength - 192) % Int(UInt8.max))
             self.lengthBytes = [firstByte, secondByte]
             
         case 8384 ..< Int(UInt32.max):
-            self.lengthLength = 4
-            self.lengthBytes = UInt32(bodyLength).fourByteBigEndianBytes()
+            self.lengthLength = 5
+            self.lengthBytes = [UInt8(255)] + UInt32(realLength).fourByteBigEndianBytes()
             
         default:
-            throw SignatureSubpacketError.invalidLength(bodyLength)
+            throw SignatureSubpacketError.invalidLength(realLength)
         }
 
 
@@ -186,7 +207,21 @@ public struct SignatureSubpacketHeader {
  */
 public enum SignatureSubpacketType:UInt8 {
     case created        = 2
+    case keyExpires     = 9
     case issuer         = 16
+    case keyFlags       = 27
+    
+    // not handeled specifically
+    case sigExpires                     = 3
+    case trust                          = 5
+    case preferedSymmetricKeyAlgorithms = 11
+    case preferedHashAlgorithms         = 21
+    case preferedCompressionAlgorithms  = 22
+    case keyServer                      = 23
+    case preferedKeyServer              = 24
+    case primaryUserID                  = 25
+    case features                       = 30
+
     
     
     init(type:UInt8) throws {

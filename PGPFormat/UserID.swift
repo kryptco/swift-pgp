@@ -31,9 +31,20 @@ public struct UserID:Packetable {
             throw FormatError.encoding
         }
         
-        self.content = all
+        self.init(content: all)
+    }
+    
+    public init(name:String, email:String) {
+        self.name = name
+        self.email = email
+        self.content = "\(name) <\(email)>"
+    }
+    
+    public init(content:String) {
+        self.content = content
         setNameAndEmail()
     }
+
     
     public func toData() throws -> Data {
         guard let data = content.data(using: .utf8) else {

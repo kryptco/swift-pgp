@@ -41,6 +41,7 @@ public struct PublicKey:Packetable {
     public enum ParsingError:Error {
         case tooShort(Int)
         case unsupportedVersion(UInt8)
+        case invalidFinerprintLength(Int)
     }
     
     
@@ -139,6 +140,28 @@ public struct PublicKey:Packetable {
         return data
     }
 
+    public func fingerprint() throws -> Data {
+        var dataToHash = Data()
+        dataToHash.append(contentsOf: [0x99])
+        
+        // pubkey length + data
+        let publicKeyPacketData = try self.toData()
+        let pubKeyLengthBytes = UInt32(publicKeyPacketData.count).twoByteBigEndianBytes()
+        dataToHash.append(contentsOf: pubKeyLengthBytes)
+        dataToHash.append(publicKeyPacketData)
+        
+        return dataToHash.SHA1
+    }
+
+    public func keyID() throws -> Data {
+        let fingerprint = try self.fingerprint()
+        
+        guard fingerprint.count == 20 else {
+            throw ParsingError.invalidFinerprintLength(fingerprint.count)
+        }
+        
+        return Data(bytes: [UInt8](fingerprint[12 ..< 20]))
+    }
 }
 
 

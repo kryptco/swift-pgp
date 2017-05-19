@@ -89,7 +89,7 @@ public extension Data {
         var dataBytes = self.bytes
         let checksum = crc_octets(&dataBytes, dataBytes.count)
         
-        guard checksum < Int(UInt32.max) else {
+        guard checksum < Int(Int32.max) else {
             return Data()
         }
         

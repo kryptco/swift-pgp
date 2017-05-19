@@ -191,7 +191,7 @@ public struct Signature:Packetable {
         // hashed subpackets
         let hashedSubpackets = try hashedSubpacketables.map({ try $0.toSubpacket() })
         let hashedSubpacketLength = hashedSubpackets.reduce(0, { $0 + $1.length })
-        guard hashedSubpacketLength <= Int(UInt32.max) else {
+        guard hashedSubpacketLength <= Int(Int32.max) else {
             throw SerializingError.tooManySubpackets
         }
         // length
@@ -211,7 +211,7 @@ public struct Signature:Packetable {
         // un-hashed subpackets
         let unhashedSubpackets = try unhashedSubpacketables.map({ try $0.toSubpacket() })
         let unhashedSubpacketLength = unhashedSubpackets.reduce(0, { $0 + $1.length })
-        guard unhashedSubpacketLength <= Int(UInt32.max) else {
+        guard unhashedSubpacketLength <= Int(Int32.max) else {
             throw SerializingError.tooManySubpackets
         }
         // length

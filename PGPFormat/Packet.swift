@@ -221,7 +221,7 @@ public struct PacketLength {
             length = 2
             formatBytes = UInt32(body).twoByteBigEndianBytes()
             
-        case Int(UInt16.max) ..< Int(UInt32.max):
+        case Int(UInt16.max) ..< Int(Int32.max):
             length = 4
             formatBytes = UInt32(body).fourByteBigEndianBytes()
         

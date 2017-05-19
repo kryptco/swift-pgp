@@ -145,7 +145,7 @@ public struct SignatureSubpacketHeader {
             let secondByte = UInt8((realLength - 192) % Int(UInt8.max))
             self.lengthBytes = [firstByte, secondByte]
             
-        case 8384 ..< Int(UInt32.max):
+        case 8384 ..< Int(Int32.max):
             self.lengthLength = 5
             self.lengthBytes = [UInt8(255)] + UInt32(realLength).fourByteBigEndianBytes()
             

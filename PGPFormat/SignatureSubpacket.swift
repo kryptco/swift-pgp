@@ -222,7 +222,7 @@ public enum SignatureSubpacketType:UInt8 {
     case primaryUserID                  = 25
     case features                       = 30
 
-    
+    case unknown                        = 33
     
     init(type:UInt8) throws {
         guard let sigType = SignatureSubpacketType(rawValue: type) else {

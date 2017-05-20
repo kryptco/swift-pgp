@@ -127,23 +127,28 @@ class PGPFormatTests: XCTestCase {
             let pubMsg = try AsciiArmorMessage(string: pubkeyEd25519)
             let packets = try [Packet](data: pubMsg.packetData)
             
-            for packet in [packets[0]] {
-                let packetOriginal = packet
-                let pubKeyOriginal = try PublicKey(packet: packetOriginal)
-                
-                let packetSerialized = try pubKeyOriginal.toPacket()
-                let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
-                
-                guard packetSerialized.body == packetOriginal.body else {
-                    print("original: \(packetOriginal.body.bytes)")
-                    print("serialized: \(packetSerialized.body.bytes)")
-                    XCTFail("packets differ after serialization deserialization")
-                    return
-                    
-                }
+            let packetOriginal = packets[0]
+            let pubKeyOriginal = try PublicKey(packet: packetOriginal)
+            
+            let packetSerialized = try pubKeyOriginal.toPacket()
+            let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
+            
+            guard packetSerialized.body == packetOriginal.body else {
+                print("original: \(packetOriginal.body.bytes)")
+                print("serialized: \(packetSerialized.body.bytes)")
+                XCTFail("packets differ after serialization deserialization")
+                return
                 
             }
             
+            let userID = try UserID(packet: packets[1])
+            
+            let signature = try Signature(packet: packets[2])
+            
+            let unknownData = try signature.hashedSubpacketables[0].toSubpacket().body
+            let unknownBytes = unknownData.bytes
+            print(unknownBytes)            
+            print(String(data: unknownData, encoding: String.Encoding.utf8))
         } catch {
             XCTFail("Unexpected error: \(error)")
             

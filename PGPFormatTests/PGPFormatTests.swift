@@ -14,6 +14,7 @@ class PGPFormatTests: XCTestCase {
     var pubkey1:String!
     var pubkey2:String!
     var pubkeyEd25519:String!
+    var pubkeyEd25519_2:String!
 
     override func setUp() {
         super.setUp()
@@ -22,6 +23,7 @@ class PGPFormatTests: XCTestCase {
         pubkey1 = try! String(contentsOfFile: bundle.path(forResource: "pubkey1", ofType: "txt")!)
         pubkey2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey2", ofType: "txt")!)
         pubkeyEd25519 = try! String(contentsOfFile: bundle.path(forResource: "pubkey3", ofType: "txt")!)
+        pubkeyEd25519_2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey4", ofType: "txt")!)
 
     }
     
@@ -144,11 +146,9 @@ class PGPFormatTests: XCTestCase {
             let userID = try UserID(packet: packets[1])
             
             let signature = try Signature(packet: packets[2])
-            
-            let unknownData = try signature.hashedSubpacketables[0].toSubpacket().body
-            let unknownBytes = unknownData.bytes
-            print(unknownBytes)            
-            print(String(data: unknownData, encoding: String.Encoding.utf8))
+            print(signature.hashedSubpacketables)
+            let fingerprint = try (signature.hashedSubpacketables[0] as? SignatureIssuerFingerprint)?.fingerprint
+            print(fingerprint?.bytes)
         } catch {
             XCTFail("Unexpected error: \(error)")
             

@@ -172,6 +172,28 @@ public struct SignatureKeyExpires:SignatureSubpacketable {
 }
 
 // MARK: A Default Subpacket
+public struct SignatureIssuerFingerprint:SignatureSubpacketable {
+    public var type:SignatureSubpacketType {
+        return .issuerFingerprint
+    }
+    
+    public var fingerprint:Data
+    
+    public init(packet:SignatureSubpacket) throws {
+        guard packet.header.subpacketType == .issuerFingerprint else {
+            throw SignatureSubpacketableError.invalidSubpacketType(packet.header.subpacketType)
+        }
+        
+        fingerprint = packet.body
+    }
+    
+    public func toData() throws -> Data {
+        return fingerprint
+    }
+}
+
+
+// MARK: A Default Subpacket
 public struct SignatureUnparsedSubpacket:SignatureSubpacketable {
     public var type:SignatureSubpacketType
     public var body:Data

@@ -75,6 +75,8 @@ public extension Array where Element == SignatureSubpacket {
                 try subpacketables.append(SignatureIssuer(packet: packet))
             case .keyFlags:
                 try subpacketables.append(SignatureKeyFlags(packet: packet))
+            case .issuerFingerprint:
+                try subpacketables.append(SignatureIssuerFingerprint(packet: packet))
             default:
                 try subpacketables.append(SignatureUnparsedSubpacket(packet: packet))
             }
@@ -222,7 +224,7 @@ public enum SignatureSubpacketType:UInt8 {
     case primaryUserID                  = 25
     case features                       = 30
 
-    case unknown                        = 33
+    case issuerFingerprint              = 33
     
     init(type:UInt8) throws {
         guard let sigType = SignatureSubpacketType(rawValue: type) else {

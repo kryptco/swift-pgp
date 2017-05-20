@@ -44,6 +44,13 @@ public struct PublicKey:Packetable {
         case invalidFinerprintLength(Int)
     }
     
+    public init(create algorithm:PublicKeyAlgorithm, modulus:Data, exponent:Data, date:Date = Date()) {
+        self.tag = .publicKey
+        self.algorithm = algorithm
+        self.modulus = modulus
+        self.exponent = exponent
+        self.created = date
+    }
     
     public init(packet:Packet) throws {
         

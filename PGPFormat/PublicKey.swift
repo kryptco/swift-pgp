@@ -18,6 +18,8 @@ public enum PublicKeyAlgorithm:UInt8 {
     case rsaEncryptOnly = 2
     case rsaSignOnly = 3
     
+    case ecc = 18
+    
     init(type:UInt8) throws {
         guard let algo = PublicKeyAlgorithm(rawValue: type) else {
             throw UnsupportedPublicKeyAlgorithm(type: type)
@@ -27,6 +29,36 @@ public enum PublicKeyAlgorithm:UInt8 {
     }
 }
 
+public protocol PublicKeyData {
+    func toData() -> Data
+}
+public struct RSAPublicKey:PublicKeyData{
+    public let modulus:Data
+    public let exponent:Data
+    
+    public func toData() -> Data {
+        var data = Data()
+        
+        // modulus:  MPI two-octet scalar length then modulus
+        data.append(contentsOf: UInt32(modulus.numBits).twoByteBigEndianBytes())
+        data.append(modulus)
+        
+        // exponent:  MPI two-octet scalar length then exponent
+        data.append(contentsOf: UInt32(exponent.numBits).twoByteBigEndianBytes())
+        data.append(exponent)
+        
+        return data
+    }
+}
+
+public struct ECCPublicKey:PublicKeyData {
+    public var rawData:Data
+    public func toData() -> Data {
+        return rawData
+    }
+}
+
+
 public struct PublicKey:Packetable {
     private let supportedVersion = 4
     
@@ -35,8 +67,7 @@ public struct PublicKey:Packetable {
     public var created:Date
     public var algorithm:PublicKeyAlgorithm
     
-    public var modulus:Data
-    public var exponent:Data
+    public var publicKeyData:PublicKeyData
     
     public enum ParsingError:Error {
         case tooShort(Int)
@@ -44,11 +75,10 @@ public struct PublicKey:Packetable {
         case invalidFinerprintLength(Int)
     }
     
-    public init(create algorithm:PublicKeyAlgorithm, modulus:Data, exponent:Data, date:Date = Date()) {
+    public init(create algorithm:PublicKeyAlgorithm, publicKeyData:PublicKeyData, date:Date = Date()) {
         self.tag = .publicKey
         self.algorithm = algorithm
-        self.modulus = modulus
-        self.exponent = exponent
+        self.publicKeyData = publicKeyData
         self.created = date
     }
     
@@ -98,7 +128,7 @@ public struct PublicKey:Packetable {
                 throw FormatError.tooShort(data.count)
             }
             
-            modulus = Data(bytes: bytes[start ..< start + modulusLength])
+            let modulus = Data(bytes: bytes[start ..< start + modulusLength])
             
             
             // public exponent e (MPI: 2 + len(e))
@@ -114,9 +144,26 @@ public struct PublicKey:Packetable {
                 throw FormatError.tooShort(data.count)
             }
             
-            exponent = Data(bytes: bytes[start ..< start + exponentLength])
+            let exponent = Data(bytes: bytes[start ..< start + exponentLength])
+            
+            self.publicKeyData = RSAPublicKey(modulus: modulus, exponent: exponent)
+        case .ecc:
+            var  start = 6
+            guard data.count >= start + 2 else {
+                throw FormatError.tooShort(data.count)
+            }
+            
+            let rawLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8
+            
+            start += 2
+            guard data.count >= start + rawLength else {
+                throw FormatError.tooShort(data.count)
+            }
+            
+            let rawData = Data(bytes: bytes[start ..< start + rawLength])
+            
+            self.publicKeyData = ECCPublicKey(rawData: rawData)
         }
-
     }
     
     public func toData() throws -> Data {
@@ -132,17 +179,8 @@ public struct PublicKey:Packetable {
         // add algorithm
         data.append(contentsOf: [algorithm.rawValue])
         
-        switch algorithm {
-        case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
-            
-            // modulus:  MPI two-octet scalar length then modulus
-            data.append(contentsOf: UInt32(modulus.numBits).twoByteBigEndianBytes())
-            data.append(modulus)
-            
-            // exponent:  MPI two-octet scalar length then exponent
-            data.append(contentsOf: UInt32(exponent.numBits).twoByteBigEndianBytes())
-            data.append(exponent)
-        }
+        // add public key data
+        data.append(publicKeyData.toData())
         
         return data
     }

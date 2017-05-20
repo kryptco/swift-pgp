@@ -105,6 +105,11 @@ public struct SignatureKeyFlags:SignatureSubpacketable, CustomDebugStringConvert
         case invalidBodyLength(Int)
     }
     
+    public init(flagTypes:[KeyFlagType]) {
+        flags = flagTypes
+        unknowns = []
+    }
+    
     public init(packet:SignatureSubpacket) throws {
         guard packet.header.subpacketType == .keyFlags else {
             throw SignatureSubpacketableError.invalidSubpacketType(packet.header.subpacketType)

@@ -36,6 +36,11 @@ public struct RSAPublicKey:PublicKeyData{
     public let modulus:Data
     public let exponent:Data
     
+    public init(modulus:Data, exponent:Data) {
+        self.modulus = modulus
+        self.exponent = exponent
+    }
+    
     public func toData() -> Data {
         var data = Data()
         
@@ -53,6 +58,11 @@ public struct RSAPublicKey:PublicKeyData{
 
 public struct ECCPublicKey:PublicKeyData {
     public var rawData:Data
+    
+    public init(rawData:Data) {
+        self.rawData = rawData
+    }
+    
     public func toData() -> Data {
         return rawData
     }

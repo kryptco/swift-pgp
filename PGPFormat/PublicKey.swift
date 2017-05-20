@@ -59,8 +59,8 @@ public struct RSAPublicKey:PublicKeyData{
 public struct ECCPublicKey:PublicKeyData {
     public var rawData:Data
     
+    public static let prefixByte:UInt8 = 0x40
     //Ed25519 only for now
-    
     public static let curveOID:[UInt8] = [0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01]
     public init(rawData:Data) {
         self.rawData = rawData
@@ -69,6 +69,7 @@ public struct ECCPublicKey:PublicKeyData {
     public func toData() -> Data {
         var data = Data()
         data.append(contentsOf: [UInt8(ECCPublicKey.curveOID.count)] + ECCPublicKey.curveOID)
+        data.append(contentsOf: [ECCPublicKey.prefixByte])
         data.append(contentsOf: UInt32(rawData.numBits).twoByteBigEndianBytes())
         data.append(rawData)
 
@@ -93,6 +94,7 @@ public struct PublicKey:Packetable {
         case invalidFinerprintLength(Int)
         case badECCCurveOIDLength(UInt8)
         case unsupportedECCCurveOID(Data)
+        case missingECCPrefixByte
     }
     
     public init(create algorithm:PublicKeyAlgorithm, publicKeyData:PublicKeyData, date:Date = Date()) {
@@ -193,11 +195,20 @@ public struct PublicKey:Packetable {
             let rawLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8
             
             start += 2
+            
+            guard bytes[start] == ECCPublicKey.prefixByte else {
+                throw ParsingError.missingECCPrefixByte
+
+            }
+            // skip the prefix byte
+            start += 1
+            
             guard data.count >= start + rawLength else {
                 throw FormatError.tooShort(data.count)
             }
             
-            let rawData = Data(bytes: bytes[start ..< start + rawLength])
+            // - 1 for the prefix byte
+            let rawData = Data(bytes: bytes[start ..< start + rawLength - 1])
             
             self.publicKeyData = ECCPublicKey(rawData: rawData)
         }

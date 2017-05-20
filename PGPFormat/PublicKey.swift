@@ -18,7 +18,7 @@ public enum PublicKeyAlgorithm:UInt8 {
     case rsaEncryptOnly = 2
     case rsaSignOnly = 3
     
-    case ecc = 18
+    case ecc = 22
     
     init(type:UInt8) throws {
         guard let algo = PublicKeyAlgorithm(rawValue: type) else {
@@ -59,13 +59,16 @@ public struct RSAPublicKey:PublicKeyData{
 public struct ECCPublicKey:PublicKeyData {
     public var rawData:Data
     
+    //Ed25519 only for now
+    
+    public static let curveOID:[UInt8] = [0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01]
     public init(rawData:Data) {
         self.rawData = rawData
     }
     
     public func toData() -> Data {
         var data = Data()
-        
+        data.append(contentsOf: [UInt8(ECCPublicKey.curveOID.count)] + ECCPublicKey.curveOID)
         data.append(contentsOf: UInt32(rawData.numBits).twoByteBigEndianBytes())
         data.append(rawData)
 
@@ -88,6 +91,8 @@ public struct PublicKey:Packetable {
         case tooShort(Int)
         case unsupportedVersion(UInt8)
         case invalidFinerprintLength(Int)
+        case badECCCurveOIDLength(UInt8)
+        case unsupportedECCCurveOID(Data)
     }
     
     public init(create algorithm:PublicKeyAlgorithm, publicKeyData:PublicKeyData, date:Date = Date()) {
@@ -128,10 +133,11 @@ public struct PublicKey:Packetable {
         // algo (5)
         algorithm = try PublicKeyAlgorithm(type: bytes[5])
         
+        var  start = 6
+
         switch algorithm {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
             // modulus n (MPI: 2 + len(n))
-            var  start = 6
             guard data.count >= start + 2 else {
                 throw FormatError.tooShort(data.count)
             }
@@ -163,7 +169,23 @@ public struct PublicKey:Packetable {
             
             self.publicKeyData = RSAPublicKey(modulus: modulus, exponent: exponent)
         case .ecc:
-            var  start = 6
+            guard data.count >= start + 10 else {
+                throw FormatError.tooShort(data.count)
+            }
+            
+            guard Int(bytes[start]) == ECCPublicKey.curveOID.count else {
+                throw ParsingError.badECCCurveOIDLength(bytes[start])
+            }
+            
+            start += 1
+            
+            let curveOID = [UInt8](bytes[start ..< start + 9])
+            guard curveOID == ECCPublicKey.curveOID else {
+                throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
+            }
+            
+            start += 9
+            
             guard data.count >= start + 2 else {
                 throw FormatError.tooShort(data.count)
             }

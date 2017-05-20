@@ -64,7 +64,12 @@ public struct ECCPublicKey:PublicKeyData {
     }
     
     public func toData() -> Data {
-        return rawData
+        var data = Data()
+        
+        data.append(contentsOf: UInt32(rawData.numBits).twoByteBigEndianBytes())
+        data.append(rawData)
+
+        return data
     }
 }
 

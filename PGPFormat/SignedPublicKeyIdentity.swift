@@ -12,16 +12,14 @@ public struct PublicKeyIdentityToSign {
     
     public var publicKey:PublicKey
     public var userID:UserID
-    public var created:Date
     
-    public init(publicKey:PublicKey, userID:UserID, created:Date) {
+    public init(publicKey:PublicKey, userID:UserID) {
         self.publicKey  = publicKey
         self.userID     = userID
-        self.created    = created
     }
     
-    public func dataToHash(hashAlgorithm:Signature.HashAlgorithm, otherHashedSubpacketables:[SignatureSubpacketable] = []) throws -> Data {
-        let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created, otherSubpacketables: otherHashedSubpacketables)
+    public func dataToHash(hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = []) throws -> Data {
+        let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, hashedSubpacketables: hashedSubpacketables)
         
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])
@@ -51,8 +49,8 @@ public struct PublicKeyIdentityToSign {
         return dataToHash
     }
     
-    public func signedPublicKey(hash:Data, hashAlgorithm:Signature.HashAlgorithm, attributes:[SignatureSubpacketable] = [], signatureData:Data) throws -> SignedPublicKeyIdentity {
-        var bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created, otherSubpacketables: attributes)
+    public func signedPublicKey(hash:Data, hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = [], signatureData:Data) throws -> SignedPublicKeyIdentity {
+        var bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, hashedSubpacketables: hashedSubpacketables)
         
         bareSignature.unhashedSubpacketables = try [SignatureIssuer(keyID: publicKey.keyID())]
         

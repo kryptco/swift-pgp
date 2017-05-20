@@ -253,9 +253,9 @@ class PGPFormatTests: XCTestCase {
             let signature = try Signature(packet: packets[2])
             
             let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
-            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID, created: created)
+            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
             
-            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm)
+            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: [SignatureCreated(date: created)])
             
             var hash:Data
 
@@ -297,9 +297,9 @@ class PGPFormatTests: XCTestCase {
             let signature = try Signature(packet: packets[3])
             
             let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
-            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID, created: created)
+            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
             
-            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm)
+            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: [SignatureCreated(date: created)])
             
             var hash:Data
 
@@ -316,12 +316,7 @@ class PGPFormatTests: XCTestCase {
                 hash = dataToHash.SHA512
             }
             
-            let attributes = [SignatureSubpacketable](signature.hashedSubpacketables[1 ..< signature.hashedSubpacketables.count])
-            
-            attributes.forEach {
-                print("-\($0.type):\n\t \($0)")
-            }
-            let signedPublicKey = try pubKeyToSign.signedPublicKey(hash: hash, hashAlgorithm: signature.hashAlgorithm, attributes: attributes, signatureData: signature.signature)
+            let signedPublicKey = try pubKeyToSign.signedPublicKey(hash: hash, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables, signatureData: signature.signature)
             
             let outPackets = try signedPublicKey.toPackets()
             let outMsg = try AsciiArmorMessage(packets: outPackets, blockType: ArmorMessageBlock.publicKey).toString()

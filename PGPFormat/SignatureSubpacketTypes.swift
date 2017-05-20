@@ -179,6 +179,10 @@ public struct SignatureIssuerFingerprint:SignatureSubpacketable {
     
     public var fingerprint:Data
     
+    public init(fingerprint:Data) {
+        self.fingerprint = fingerprint
+    }
+    
     public init(packet:SignatureSubpacket) throws {
         guard packet.header.subpacketType == .issuerFingerprint else {
             throw SignatureSubpacketableError.invalidSubpacketType(packet.header.subpacketType)

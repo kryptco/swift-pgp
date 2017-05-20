@@ -18,7 +18,7 @@ public enum PublicKeyAlgorithm:UInt8 {
     case rsaEncryptOnly = 2
     case rsaSignOnly = 3
     
-    case ecc = 22
+    case ecc = 18
     
     init(type:UInt8) throws {
         guard let algo = PublicKeyAlgorithm(rawValue: type) else {

@@ -20,8 +20,8 @@ public struct PublicKeyIdentityToSign {
         self.created    = created
     }
     
-    public func dataToHash(hashAlgorithm:Signature.HashAlgorithm) throws -> Data {
-        let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created)
+    public func dataToHash(hashAlgorithm:Signature.HashAlgorithm, otherHashedSubpacketables:[SignatureSubpacketable] = []) throws -> Data {
+        let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created, otherSubpacketables: otherHashedSubpacketables)
         
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])

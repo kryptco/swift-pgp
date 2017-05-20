@@ -12,12 +12,15 @@ import XCTest
 class PGPFormatTests: XCTestCase {
     
     var pubkey1:String!
+    var pubkey2:String!
+
     override func setUp() {
         super.setUp()
         
         let bundle = Bundle(for: type(of: self))
-        let path = bundle.path(forResource: "pubkey1", ofType: "txt")!
-        pubkey1 = try! String(contentsOfFile: path)
+        pubkey1 = try! String(contentsOfFile: bundle.path(forResource: "pubkey1", ofType: "txt")!)
+        pubkey2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey2", ofType: "txt")!)
+
     }
     
     override func tearDown() {
@@ -88,6 +91,35 @@ class PGPFormatTests: XCTestCase {
 
         }
     }
+    
+    func testPublicKeyTwoSerializeDeserializePacket() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkey2)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            for packet in [packets[0]] {                                
+                let packetOriginal = packet
+                let pubKeyOriginal = try PublicKey(packet: packetOriginal)
+                
+                let packetSerialized = try pubKeyOriginal.toPacket()
+                let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
+                
+                guard packetSerialized.body == packetOriginal.body else {
+                    print("original: \(packetOriginal.body.bytes)")
+                    print("serialized: \(packetSerialized.body.bytes)")
+                    XCTFail("packets differ after serialization deserialization")
+                    return
+                    
+                }
+                
+            }
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
+
     
     func testFingerprintAndKeyId() {
         do  {
@@ -249,6 +281,10 @@ class PGPFormatTests: XCTestCase {
             }
             
             let attributes = [SignatureSubpacketable](signature.hashedSubpacketables[1 ..< signature.hashedSubpacketables.count])
+            
+            attributes.forEach {
+                print("-\($0.type):\n\t \($0)")
+            }
             let signedPublicKey = try pubKeyToSign.signedPublicKey(hash: hash, hashAlgorithm: signature.hashAlgorithm, attributes: attributes, signatureData: signature.signature)
             
             let outPackets = try signedPublicKey.toPackets()

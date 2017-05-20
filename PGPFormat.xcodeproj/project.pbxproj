@@ -11,6 +11,7 @@
 		FA12EA8F1ECE100C001603BF /* SignatureSubpacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */; };
 		FA12EA931ECF5404001603BF /* SignatureSubpacketTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA12EA921ECF5404001603BF /* SignatureSubpacketTypes.swift */; };
 		FA12EA991ECF9197001603BF /* SignedPublicKeyIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA12EA981ECF9197001603BF /* SignedPublicKeyIdentity.swift */; };
+		FA12EAB71ED000D7001603BF /* pubkey2.txt in Resources */ = {isa = PBXBuildFile; fileRef = FA12EAB61ED000D7001603BF /* pubkey2.txt */; };
 		FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C31EC9E806003EC6C0 /* Packet.swift */; };
 		FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C41EC9E806003EC6C0 /* PublicKey.swift */; };
@@ -39,6 +40,7 @@
 		FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignatureSubpacket.swift; sourceTree = "<group>"; };
 		FA12EA921ECF5404001603BF /* SignatureSubpacketTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignatureSubpacketTypes.swift; sourceTree = "<group>"; };
 		FA12EA981ECF9197001603BF /* SignedPublicKeyIdentity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignedPublicKeyIdentity.swift; sourceTree = "<group>"; };
+		FA12EAB61ED000D7001603BF /* pubkey2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pubkey2.txt; sourceTree = "<group>"; };
 		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPFormat.h; sourceTree = "<group>"; };
 		FACE33BC1EC9E779003EC6C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 			children = (
 				FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */,
 				FAEA70611ECC197400920AAB /* pubkey1.txt */,
+				FA12EAB61ED000D7001603BF /* pubkey2.txt */,
 				FAEA705A1ECC192D00920AAB /* Info.plist */,
 			);
 			path = PGPFormatTests;
@@ -237,6 +240,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAEA70621ECC197400920AAB /* pubkey1.txt in Resources */,
+				FA12EAB71ED000D7001603BF /* pubkey2.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

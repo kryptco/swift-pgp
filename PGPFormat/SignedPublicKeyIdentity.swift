@@ -14,6 +14,12 @@ public struct PublicKeyIdentityToSign {
     public var userID:UserID
     public var created:Date
     
+    public init(publicKey:PublicKey, userID:UserID, created:Date) {
+        self.publicKey  = publicKey
+        self.userID     = userID
+        self.created    = created
+    }
+    
     public func dataToHash(hashAlgorithm:Signature.HashAlgorithm) throws -> Data {
         let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, created: created)
         

@@ -148,7 +148,7 @@ public struct Signature:Packetable {
 
         // signature MPI
         switch publicKeyAlgorithm {
-        case .rsaEncryptOrSign, .rsaSignOnly:
+        case .rsaEncryptOrSign, .rsaSignOnly, .ecc:
             
             guard bytes.count >= ptr + 2 else {
                 throw FormatError.tooShort(bytes.count)
@@ -163,7 +163,7 @@ public struct Signature:Packetable {
             
             signature = Data(bytes: bytes[ptr ..< (ptr + signatureLength)])
 
-        default:
+        case .rsaEncryptOnly:
             throw UnsupportedPublicKeyAlgorithm(type: publicKeyAlgorithm.rawValue)
             
         }

@@ -174,7 +174,7 @@ public struct Signature:Packetable {
         self.kind = kind
         self.publicKeyAlgorithm = publicKeyAlgorithm
         self.hashAlgorithm = hashAlgorithm
-        self.hashedSubpacketables = [SignatureCreated(date: created)] + otherSubpacketables
+        self.hashedSubpacketables = otherSubpacketables + [SignatureCreated(date: created)]
         self.unhashedSubpacketables = []
         self.leftTwoHashBytes = []
         self.signature = Data()

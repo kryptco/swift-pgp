@@ -242,6 +242,32 @@ class PGPFormatTests: XCTestCase {
         }
     }
     
+    func testSignatureSerializeDeserializeEd25519Packet() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkeyEd25519)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            let packetOriginal = packets[2]
+            let sigOriginal = try Signature(packet: packetOriginal)
+            
+            let packetSerialized = try sigOriginal.toPacket()
+            let sigDeserialized = try Signature(packet: packetSerialized)
+            
+            guard packetSerialized.body == packetOriginal.body else {
+                print("original: \(packetOriginal.body.bytes)")
+                print("serialized: \(packetSerialized.body.bytes)")
+                XCTFail("packets differ after serialization deserialization")
+                return
+                
+            }
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
+
+    
     // Test signature hash
     func testSignatureHashMatchesLeft16Bits() {
         do  {
@@ -332,7 +358,47 @@ class PGPFormatTests: XCTestCase {
         }
     }
 
-
-
-
+    
+    // Test signature hash
+    func testEd25519SignatureHashMatchesLeft16Bits() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkeyEd25519)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            let publicKey = try PublicKey(packet: packets[0])
+            let userID = try UserID(packet: packets[1])
+            let signature = try Signature(packet: packets[2])
+            
+            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
+            
+            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
+            
+            var hash:Data
+            
+            switch signature.hashAlgorithm {
+            case .sha1:
+                hash = dataToHash.SHA1
+            case .sha224:
+                hash = dataToHash.SHA224
+            case .sha256:
+                hash = dataToHash.SHA256
+            case .sha384:
+                hash = dataToHash.SHA384
+            case .sha512:
+                hash = dataToHash.SHA512
+            }
+            
+            let leftTwoBytes = [UInt8](hash.bytes[0...1])
+            
+            guard leftTwoBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(leftTwoBytes)\nExpected: \(signature.leftTwoHashBytes)")
+                return
+            }
+            
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
 }

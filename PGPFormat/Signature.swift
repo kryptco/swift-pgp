@@ -66,6 +66,7 @@ public struct Signature:Packetable {
     public enum SerializingError:Error {
         case tooManySubpackets
         case signatureTooShort
+        case invalidSignatureLength(Int)
     }
 
     
@@ -148,7 +149,7 @@ public struct Signature:Packetable {
 
         // signature MPI
         switch publicKeyAlgorithm {
-        case .rsaEncryptOrSign, .rsaSignOnly, .ecc:
+        case .rsaEncryptOrSign, .rsaSignOnly:
             
             guard bytes.count >= ptr + 2 else {
                 throw FormatError.tooShort(bytes.count)
@@ -162,7 +163,45 @@ public struct Signature:Packetable {
             }
             
             signature = Data(bytes: bytes[ptr ..< (ptr + signatureLength)])
-
+            
+        case .ecc:
+            
+            // first point
+            guard bytes.count >= ptr + 2 else {
+                throw FormatError.tooShort(bytes.count)
+            }
+            
+            let firstPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
+            ptr += 2
+            
+            guard bytes.count >= ptr + firstPointLength else {
+                throw FormatError.tooShort(bytes.count)
+            }
+            
+            let firstPoint = Data(bytes: bytes[ptr ..< (ptr + firstPointLength)])
+            
+            ptr += firstPointLength
+            
+            // second point
+            guard bytes.count >= ptr + 2 else {
+                throw FormatError.tooShort(bytes.count)
+            }
+            
+            let secondPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
+            ptr += 2
+            
+            guard bytes.count >= ptr + secondPointLength else {
+                throw FormatError.tooShort(bytes.count)
+            }
+            
+            let secondPoint = Data(bytes: bytes[ptr ..< (ptr + secondPointLength)])
+            
+            var sigData = Data()
+            sigData.append(firstPoint)
+            sigData.append(secondPoint)
+            
+            signature = sigData
+            
         case .rsaEncryptOnly:
             throw UnsupportedPublicKeyAlgorithm(type: publicKeyAlgorithm.rawValue)
             
@@ -225,8 +264,27 @@ public struct Signature:Packetable {
         data.append(contentsOf: leftTwoHashBytes)
         
         // signature MPI
-        data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())
-        data.append(signature)
+        switch publicKeyAlgorithm {
+        case .rsaEncryptOrSign, .rsaSignOnly:
+            data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())
+            data.append(signature)
+        case .ecc:
+            guard signature.count == 64 else {
+                throw SerializingError.invalidSignatureLength(signature.count)
+            }
+            
+            let firstPoint = Data(bytes: signature.bytes[0...31])
+            let secondPoint = Data(bytes: signature.bytes[32...63])
+            
+            data.append(contentsOf: UInt32(firstPoint.numBits).twoByteBigEndianBytes())
+            data.append(firstPoint)
+            
+            data.append(contentsOf: UInt32(secondPoint.numBits).twoByteBigEndianBytes())
+            data.append(secondPoint)
+            
+        case .rsaEncryptOnly:
+            throw UnsupportedPublicKeyAlgorithm(type: publicKeyAlgorithm.rawValue)
+        }
         
         return data
     }

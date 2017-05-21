@@ -86,9 +86,11 @@ public struct AsciiArmorMessage {
             throw AsciiArmorError.invalidArmor
         }
         
+        var packetStart = 1
         if  lines[1].hasPrefix(ArmorMessageBlock.commentPrefix)
         {
             self.comment = lines[1].replacingOccurrences(of: ArmorMessageBlock.commentPrefix, with: "").trimmingCharacters(in: CharacterSet.whitespaces)
+            packetStart += 1
         }
         
         // crc
@@ -103,7 +105,7 @@ public struct AsciiArmorMessage {
         
         self.blockType = headerBlockType
         
-        let packets = try lines[2 ..< (lines.count - 2)].joined(separator: "").fromBase64()
+        let packets = try lines[packetStart ..< (lines.count - 2)].joined(separator: "").fromBase64()
         
         guard self.crcChecksum == packets.crc24Checksum else {
             throw AsciiArmorError.invalidChecksum

@@ -16,6 +16,9 @@ class PGPFormatTests: XCTestCase {
     var pubkeyEd25519:String!
     var pubkeyEd25519_2:String!
 
+    var binarySignature:String!
+    var binaryDocument:String!
+
     override func setUp() {
         super.setUp()
         
@@ -24,6 +27,9 @@ class PGPFormatTests: XCTestCase {
         pubkey2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey2", ofType: "txt")!)
         pubkeyEd25519 = try! String(contentsOfFile: bundle.path(forResource: "pubkey3", ofType: "txt")!)
         pubkeyEd25519_2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey4", ofType: "txt")!)
+
+        binarySignature = try! String(contentsOfFile: bundle.path(forResource: "signature", ofType: "txt")!)
+        binaryDocument = try! String(contentsOfFile: bundle.path(forResource: "signed_raw", ofType: "txt")!)
 
     }
     
@@ -399,6 +405,55 @@ class PGPFormatTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
             
+        }
+    }
+    
+    // Test binary document signature
+    func testBinaryDocumentSignature() {
+        do {
+            let msg = try AsciiArmorMessage(string: binarySignature)
+            let packets = try [Packet](data: msg.packetData)
+            let signature = try Signature(packet: packets[0])
+            
+            print("Kind: \(signature.kind)")
+            print("Hashed Sbpkt Type: \(signature.hashedSubpacketables[0].type)")
+            
+            var dataToHash = binaryDocument.data(using: String.Encoding.utf8)!
+            
+            // append signature data
+            let signatureData = try signature.signedData()
+            dataToHash.append(signatureData)
+            
+            // trailer
+            dataToHash.append(contentsOf: [UInt8(signature.supportedVersion)])
+            dataToHash.append(contentsOf: [0xFF])
+            dataToHash.append(contentsOf: UInt32(signatureData.count).fourByteBigEndianBytes())
+            
+            
+            var hash:Data
+            switch signature.hashAlgorithm {
+            case .sha1:
+                hash = dataToHash.SHA1
+            case .sha224:
+                hash = dataToHash.SHA224
+            case .sha256:
+                hash = dataToHash.SHA256
+            case .sha384:
+                hash = dataToHash.SHA384
+            case .sha512:
+                hash = dataToHash.SHA512
+            }
+            
+            let leftTwoBytes = [UInt8](hash.bytes[0...1])
+            
+            guard leftTwoBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(leftTwoBytes)\nExpected: \(signature.leftTwoHashBytes)")
+                return
+            }
+
+
+        } catch {
+            XCTFail("Unexpected error: \(error)")
         }
     }
 }

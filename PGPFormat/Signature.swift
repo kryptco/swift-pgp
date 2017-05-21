@@ -243,6 +243,16 @@ public struct Signature:Packetable {
         return data
     }
 
+    public func trailer(for signatureData:Data) -> Data {
+        // trailer
+        var data = Data()
+        data.append(contentsOf: [UInt8(supportedVersion)])
+        data.append(contentsOf: [0xFF])
+        data.append(contentsOf: UInt32(signatureData.count).fourByteBigEndianBytes())
+        
+        return data
+    }
+
     
     public func toData() throws -> Data {
         var data = try signedData()

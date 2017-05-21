@@ -41,11 +41,9 @@ public struct PublicKeyIdentityToSign {
         let signatureData = try bareSignature.signedData()
         dataToHash.append(signatureData)
         
-        // trailer
-        dataToHash.append(contentsOf: [UInt8(bareSignature.supportedVersion)])
-        dataToHash.append(contentsOf: [0xFF])
-        dataToHash.append(contentsOf: UInt32(signatureData.count).fourByteBigEndianBytes())
-
+        // add trailer
+        dataToHash.append(bareSignature.trailer(for: signatureData))
+        
         return dataToHash
     }
     

@@ -425,10 +425,7 @@ class PGPFormatTests: XCTestCase {
             dataToHash.append(signatureData)
             
             // trailer
-            dataToHash.append(contentsOf: [UInt8(signature.supportedVersion)])
-            dataToHash.append(contentsOf: [0xFF])
-            dataToHash.append(contentsOf: UInt32(signatureData.count).fourByteBigEndianBytes())
-            
+            dataToHash.append(signature.trailer(for: signatureData))
             
             var hash:Data
             switch signature.hashAlgorithm {

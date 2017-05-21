@@ -67,6 +67,7 @@ public struct Signature:Packetable {
         case tooManySubpackets
         case signatureTooShort
         case invalidSignatureLength(Int)
+        case invalidHashLength(Int)
     }
 
     
@@ -209,6 +210,7 @@ public struct Signature:Packetable {
 
     }
     
+    // MARK: Signing Helpers
     public init(bare kind:Kind, publicKeyAlgorithm:PublicKeyAlgorithm, hashAlgorithm:HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = []) {
         self.kind = kind
         self.publicKeyAlgorithm = publicKeyAlgorithm
@@ -242,6 +244,19 @@ public struct Signature:Packetable {
         
         return data
     }
+    
+    public func dataToHash() throws -> Data {
+        var dataToHash = Data()
+        
+        // append signature data
+        let signatureData = try self.signedData()
+        dataToHash.append(signatureData)
+        
+        // trailer
+        dataToHash.append(self.trailer(for: signatureData))
+        
+        return dataToHash
+    }
 
     public func trailer(for signatureData:Data) -> Data {
         // trailer
@@ -252,8 +267,16 @@ public struct Signature:Packetable {
         
         return data
     }
-
     
+    mutating public func set(hash:Data, signedHash:Data) throws {
+        guard hash.count >= 2 else {
+            throw Signature.SerializingError.invalidHashLength(hash.count)
+        }
+        self.leftTwoHashBytes = [UInt8](hash.bytes[0...1])
+        self.signature = signedHash
+    }
+
+    // MARK: Serializing
     public func toData() throws -> Data {
         var data = try signedData()
         

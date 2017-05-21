@@ -8,19 +8,23 @@
 
 import Foundation
 
-public struct PublicKeyIdentityToSign {
+public struct SignedPublicKeyIdentity:Signable {
     
     public var publicKey:PublicKey
     public var userID:UserID
+    public var signature:Signature
     
-    public init(publicKey:PublicKey, userID:UserID) {
+    public init(publicKey:PublicKey, userID:UserID, hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = []) throws {
         self.publicKey  = publicKey
         self.userID     = userID
+        
+        self.signature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, hashedSubpacketables: hashedSubpacketables)
+        
+        self.signature.unhashedSubpacketables = try [SignatureIssuer(keyID: publicKey.keyID())]
+
     }
     
-    public func dataToHash(hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = []) throws -> Data {
-        let bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, hashedSubpacketables: hashedSubpacketables)
-        
+    public func signableData() throws -> Data {
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])
         
@@ -37,41 +41,11 @@ public struct PublicKeyIdentityToSign {
         dataToHash.append(contentsOf: userIdLengthBytes)
         dataToHash.append(userIdPacketData)
         
-        // add signature data
-        let signatureData = try bareSignature.signedData()
-        dataToHash.append(signatureData)
-        
-        // add trailer
-        dataToHash.append(bareSignature.trailer(for: signatureData))
-        
         return dataToHash
     }
-    
-    public func signedPublicKey(hash:Data, hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = [], signatureData:Data) throws -> SignedPublicKeyIdentity {
-        var bareSignature = Signature(bare: Signature.Kind.positiveUserID, publicKeyAlgorithm: publicKey.algorithm, hashAlgorithm: hashAlgorithm, hashedSubpacketables: hashedSubpacketables)
-        
-        bareSignature.unhashedSubpacketables = try [SignatureIssuer(keyID: publicKey.keyID())]
-        
-        guard hash.count >= 2 else {
-            throw PublicKeyIdentitySiginingError.invalidHashLength(hash.count)
-        }
-        
-        bareSignature.leftTwoHashBytes = [UInt8](hash.bytes[0...1])
-        bareSignature.signature = signatureData
-        
-        return SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, signature: bareSignature)
-    }
-}
-
-public enum PublicKeyIdentitySiginingError:Error {
-    case invalidHashLength(Int)
-}
-public struct SignedPublicKeyIdentity {
-    public var publicKey:PublicKey
-    public var userID:UserID
-    public var signature:Signature
     
     public func toPackets() throws -> [Packet] {
         return try [publicKey.toPacket(), userID.toPacket(), signature.toPacket()]
     }
+
 }

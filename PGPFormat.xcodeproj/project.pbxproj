@@ -24,6 +24,8 @@
 		FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C71EC9E806003EC6C0 /* Util.swift */; };
 		FACE33CE1EC9E81A003EC6C0 /* PGPFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */; };
 		FACE33D01EC9E88D003EC6C0 /* AsciiArmor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */; };
+		FAD667631ED2119D00A4430D /* SignedBinaryDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD667621ED2119D00A4430D /* SignedBinaryDocument.swift */; };
+		FAD667671ED22E7800A4430D /* Signable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD667661ED22E7800A4430D /* Signable.swift */; };
 		FAEA70591ECC192D00920AAB /* PGPFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */; };
 		FAEA705B1ECC192D00920AAB /* PGPFormat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */; };
 		FAEA70621ECC197400920AAB /* pubkey1.txt in Resources */ = {isa = PBXBuildFile; fileRef = FAEA70611ECC197400920AAB /* pubkey1.txt */; };
@@ -59,6 +61,8 @@
 		FACE33C71EC9E806003EC6C0 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		FACE33CD1EC9E81A003EC6C0 /* PGPFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PGPFormat.swift; sourceTree = "<group>"; };
 		FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsciiArmor.swift; sourceTree = "<group>"; };
+		FAD667621ED2119D00A4430D /* SignedBinaryDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignedBinaryDocument.swift; sourceTree = "<group>"; };
+		FAD667661ED22E7800A4430D /* Signable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signable.swift; sourceTree = "<group>"; };
 		FAEA70561ECC192D00920AAB /* PGPFormatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PGPFormatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAEA70581ECC192D00920AAB /* PGPFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PGPFormatTests.swift; sourceTree = "<group>"; };
 		FAEA705A1ECC192D00920AAB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -121,11 +125,13 @@
 				FACE33CF1EC9E88D003EC6C0 /* AsciiArmor.swift */,
 				FACE33C31EC9E806003EC6C0 /* Packet.swift */,
 				FACE33C41EC9E806003EC6C0 /* PublicKey.swift */,
-				FA12EA981ECF9197001603BF /* SignedPublicKeyIdentity.swift */,
 				FACE33C61EC9E806003EC6C0 /* UserID.swift */,
 				FACE33C51EC9E806003EC6C0 /* Signature.swift */,
 				FA12EA8E1ECE100C001603BF /* SignatureSubpacket.swift */,
 				FA12EA921ECF5404001603BF /* SignatureSubpacketTypes.swift */,
+				FAD667661ED22E7800A4430D /* Signable.swift */,
+				FA12EA981ECF9197001603BF /* SignedPublicKeyIdentity.swift */,
+				FAD667621ED2119D00A4430D /* SignedBinaryDocument.swift */,
 				FACE33C71EC9E806003EC6C0 /* Util.swift */,
 			);
 			path = PGPFormat;
@@ -300,7 +306,9 @@
 			files = (
 				FA12EA991ECF9197001603BF /* SignedPublicKeyIdentity.swift in Sources */,
 				FACE33D01EC9E88D003EC6C0 /* AsciiArmor.swift in Sources */,
+				FAD667671ED22E7800A4430D /* Signable.swift in Sources */,
 				FACE33CA1EC9E806003EC6C0 /* Signature.swift in Sources */,
+				FAD667631ED2119D00A4430D /* SignedBinaryDocument.swift in Sources */,
 				FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */,
 				FACE33CE1EC9E81A003EC6C0 /* PGPFormat.swift in Sources */,
 				FACE33CC1EC9E806003EC6C0 /* Util.swift in Sources */,

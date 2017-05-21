@@ -274,52 +274,8 @@ class PGPFormatTests: XCTestCase {
     }
 
     
-    // Test signature hash
-    func testSignatureHashMatchesLeft16Bits() {
-        do  {
-            let pubMsg = try AsciiArmorMessage(string: pubkey1)
-            let packets = try [Packet](data: pubMsg.packetData)
-            
-            let publicKey = try PublicKey(packet: packets[0])
-            let userID = try UserID(packet: packets[1])
-            let signature = try Signature(packet: packets[2])
-            
-            let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
-            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
-            
-            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: [SignatureCreated(date: created)])
-            
-            var hash:Data
-
-            switch signature.hashAlgorithm {
-            case .sha1:
-                hash = dataToHash.SHA1
-            case .sha224:
-                hash = dataToHash.SHA224
-            case .sha256:
-                hash = dataToHash.SHA256
-            case .sha384:
-                hash = dataToHash.SHA384
-            case .sha512:
-                hash = dataToHash.SHA512
-            }
-            
-            let leftTwoBytes = [UInt8](hash.bytes[0...1])
-            
-            guard leftTwoBytes == signature.leftTwoHashBytes else {
-                XCTFail("Left two hash bytes don't match: \nGot: \(leftTwoBytes)\nExpected: \(signature.leftTwoHashBytes)")
-                return
-            }
-            
-            
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-            
-        }
-    }
-    
-    // Test output a simple public
-    func testSimplePublicKeyOutput() {
+    // Test RSA left two bytes match
+    func testRSAPublicKeySignatureHashLeftTwoBytes() {
         do  {
             let pubMsg = try AsciiArmorMessage(string: pubkey1)
             let packets = try [Packet](data: pubMsg.packetData)
@@ -328,10 +284,9 @@ class PGPFormatTests: XCTestCase {
             let userID = try UserID(packet: packets[1])
             let signature = try Signature(packet: packets[3])
             
-            let created = (signature.hashedSubpacketables[0] as! SignatureCreated).date
-            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
+            var signedPubKey = try SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             
-            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: [SignatureCreated(date: created)])
+            let dataToHash = try signedPubKey.dataToHash()
             
             var hash:Data
 
@@ -348,19 +303,23 @@ class PGPFormatTests: XCTestCase {
                 hash = dataToHash.SHA512
             }
             
-            let signedPublicKey = try pubKeyToSign.signedPublicKey(hash: hash, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables, signatureData: signature.signature)
+            try signedPubKey.set(hash: hash, signedHash: signature.signature)
+
+            guard signedPubKey.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(signedPubKey.signature.leftTwoHashBytes)\nExpected: \(signature.leftTwoHashBytes)")
+                return
+            }
             
-            let outPackets = try signedPublicKey.toPackets()
+            let outPackets = try signedPubKey.toPackets()
             let outMsg = try AsciiArmorMessage(packets: outPackets, blockType: ArmorMessageBlock.publicKey).toString()
             
             let inPackets = try [Packet](data: AsciiArmorMessage(string: outMsg).packetData)
             
-            print(inPackets)
-            
             print(outMsg)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
             
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")            
         }
     }
 
@@ -375,9 +334,9 @@ class PGPFormatTests: XCTestCase {
             let userID = try UserID(packet: packets[1])
             let signature = try Signature(packet: packets[2])
             
-            let pubKeyToSign = PublicKeyIdentityToSign(publicKey: publicKey, userID: userID)
+            var signedPubKey = try SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             
-            let dataToHash = try pubKeyToSign.dataToHash(hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
+            let dataToHash = try signedPubKey.dataToHash()
             
             var hash:Data
             
@@ -394,10 +353,10 @@ class PGPFormatTests: XCTestCase {
                 hash = dataToHash.SHA512
             }
             
-            let leftTwoBytes = [UInt8](hash.bytes[0...1])
+            try signedPubKey.set(hash: hash, signedHash: signature.signature)
             
-            guard leftTwoBytes == signature.leftTwoHashBytes else {
-                XCTFail("Left two hash bytes don't match: \nGot: \(leftTwoBytes)\nExpected: \(signature.leftTwoHashBytes)")
+            guard signedPubKey.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(signedPubKey.signature.leftTwoHashBytes)\nExpected: \(signature.leftTwoHashBytes)")
                 return
             }
             
@@ -418,15 +377,12 @@ class PGPFormatTests: XCTestCase {
             print("Kind: \(signature.kind)")
             print("Hashed Sbpkt Type: \(signature.hashedSubpacketables[0].type)")
             
-            var dataToHash = binaryDocument.data(using: String.Encoding.utf8)!
+            var binaryData = binaryDocument.data(using: String.Encoding.utf8)!
             
-            // append signature data
-            let signatureData = try signature.signedData()
-            dataToHash.append(signatureData)
+            var signedBinary = SignedBinaryDocument(binary: binaryData, publicKeyAlgorithm: signature.publicKeyAlgorithm, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             
-            // trailer
-            dataToHash.append(signature.trailer(for: signatureData))
-            
+            let dataToHash = try signedBinary.dataToHash()
+
             var hash:Data
             switch signature.hashAlgorithm {
             case .sha1:
@@ -441,10 +397,10 @@ class PGPFormatTests: XCTestCase {
                 hash = dataToHash.SHA512
             }
             
-            let leftTwoBytes = [UInt8](hash.bytes[0...1])
+            try signedBinary.set(hash: hash, signedHash: signature.signature)
             
-            guard leftTwoBytes == signature.leftTwoHashBytes else {
-                XCTFail("Left two hash bytes don't match: \nGot: \(leftTwoBytes)\nExpected: \(signature.leftTwoHashBytes)")
+            guard signedBinary.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(signedBinary.signature.leftTwoHashBytes)\nExpected: \(signature.leftTwoHashBytes)")
                 return
             }
 

@@ -80,6 +80,24 @@ public struct Packet {
 }
 
 // MARK: Packetable
+public extension Array where Element == Packetable {
+    public init(data:Data) throws {
+        let packets = try [Packet](data: data)
+        
+        self = try packets.map {
+            switch $0.header.tag {
+            case .publicKey, .publicSubkey:
+                return try PublicKey(packet: $0)
+            case .userID:
+                return try UserID(packet: $0)
+            case .signature:
+                return try Signature(packet: $0)
+            }
+        }
+    }
+}
+
+
 
 public protocol Packetable {
     var tag:PacketTag { get }
@@ -323,14 +341,9 @@ public struct PacketLength {
 
 public enum PacketTag:UInt8 {
     case signature      = 2
-    case secretKey      = 5
     case publicKey      = 6
-    case marker         = 10
-    case literalData    = 11
-    case trust          = 12
     case userID         = 13
     case publicSubkey   = 14
-    case userAttribute  = 17
     
     init(tag:UInt8) throws {
         guard let packetTag = PacketTag(rawValue: tag) else {

@@ -116,7 +116,7 @@ public struct AsciiArmorMessage {
     
     
     public func toString() -> String {
-        let packetDataB64 = packetData.base64EncodedString(options: NSData.Base64EncodingOptions.lineLength64Characters)
+        let packetDataB64 = packetData.base64EncodedString(options: [.lineLength64Characters, .endLineWithLineFeed])
         
         var result = ""
         

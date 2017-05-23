@@ -62,7 +62,7 @@ public struct AsciiArmorMessage {
     public let blockType:ArmorMessageBlock
     public var comment:String?
     
-    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created by swift-pgp") throws {
+    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {
         var packetData = Data()
         try packets.forEach {
             try packetData.append($0.toData())
@@ -118,12 +118,19 @@ public struct AsciiArmorMessage {
     public func toString() -> String {
         let packetDataB64 = packetData.base64EncodedString(options: NSData.Base64EncodingOptions.lineLength64Characters)
         
-        return  "\(blockType.begin)\n"                                      +
-                "\(ArmorMessageBlock.commentPrefix) \(comment ?? "\n")\n"   +
-                "\n"                                                        +
-                "\(packetDataB64)\n"                                        +
-                "=\(crcChecksum.toBase64())\n"                              +
-                "\(blockType.end)"
+        var result = ""
+        
+        result += "\(blockType.begin)\n"
+        
+        if let comment = self.comment {
+            result += "\(ArmorMessageBlock.commentPrefix) \(comment)\n"
+        }
+        result += "\n"
+        result += "\(packetDataB64)\n"
+        result += "=\(crcChecksum.toBase64())\n"
+        result += "\(blockType.end)\n"
+
+        return result
     }
     
 }

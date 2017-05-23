@@ -128,7 +128,7 @@ public struct AsciiArmorMessage {
         result += "\n"
         result += "\(packetDataB64)\n"
         result += "=\(crcChecksum.toBase64())\n"
-        result += "\(blockType.end)\n"
+        result += "\(blockType.end)"
 
         return result
     }

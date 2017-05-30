@@ -11,10 +11,11 @@ import Foundation
 
 /**
     Parse this format to pull out packet data.
+ 
      -----BEGIN PGP PUBLIC KEY BLOCK-----
      Comment: <String>
-     <Base64 Data>
-     =m4zw
+     Data <String:Base64 Encoded Bytes>
+     =CRC24(Data) <String: Base64 encoded CRC-24 checksum>
      -----END PGP PUBLIC KEY BLOCK-----
  */
 
@@ -62,16 +63,21 @@ public struct AsciiArmorMessage {
     public let blockType:ArmorMessageBlock
     public var comment:String?
     
-    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {
-        var packetData = Data()
-        try packets.forEach {
-            try packetData.append($0.toData())
-        }
+    
+    public init(packetData:Data, blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") {
         self.packetData = packetData
         self.crcChecksum = packetData.crc24Checksum
         self.blockType = blockType
         self.comment = comment
     }
+    
+    public init(message:Message, blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {
+        try self.init(packetData: message.data(), blockType: blockType, comment: comment)
+    }
+//
+//    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {        
+//        try self.init(message: Message(packets: packets), blockType: blockType, comment: comment)
+//    }
 
     public init(string:String) throws {
         let lines = string.components(separatedBy: CharacterSet.newlines).filter { !$0.isEmpty }

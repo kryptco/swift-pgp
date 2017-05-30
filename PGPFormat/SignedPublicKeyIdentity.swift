@@ -48,4 +48,7 @@ public struct SignedPublicKeyIdentity:Signable {
         return try [publicKey.toPacket(), userID.toPacket(), signature.toPacket()]
     }
 
+    public func toMessage() throws -> Message {
+        return try Message(packets: self.toPackets())
+    }
 }

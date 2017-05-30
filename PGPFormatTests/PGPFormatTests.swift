@@ -310,8 +310,7 @@ class PGPFormatTests: XCTestCase {
                 return
             }
             
-            let outPackets = try signedPubKey.toPackets()
-            let outMsg = try AsciiArmorMessage(message: Message(packets: outPackets), blockType: ArmorMessageBlock.publicKey).toString()
+            let outMsg = try AsciiArmorMessage(message: signedPubKey.toMessage(), blockType: ArmorMessageBlock.publicKey).toString()
             let inPackets = try [Packet](data: AsciiArmorMessage(string: outMsg).packetData)
             
             print(outMsg)

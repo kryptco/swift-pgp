@@ -25,4 +25,8 @@ public extension Signable {
     public mutating func set(hash:Data, signedHash:Data) throws {
         try signature.set(hash: hash, signedHash: signedHash)
     }
+    
+    public func toMessage() throws -> Message {
+        return try Message(packets: self.toPackets())
+    }
 }

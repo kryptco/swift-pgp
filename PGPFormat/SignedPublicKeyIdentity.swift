@@ -48,3 +48,18 @@ public struct SignedPublicKeyIdentity:Signable {
         return try [publicKey.toPacket(), userID.toPacket(), signature.toPacket()]
     }
 }
+
+public extension Array where Element == SignedPublicKeyIdentity {
+    public func joinedMessage() throws -> Message {
+        var packets = [Packet]()
+        if let first = self.first {
+            try packets.append(first.publicKey.toPacket())
+        }
+        
+        try self.forEach {
+            try packets.append(contentsOf: [$0.userID.toPacket(), $0.signature.toPacket()])
+        }
+        
+        return Message(packets: packets)
+    }
+}

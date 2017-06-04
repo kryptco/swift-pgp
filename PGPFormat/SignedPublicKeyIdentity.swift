@@ -58,7 +58,11 @@ public struct SignedPublicKeyIdentity:Signable, Messagable {
  */
 public struct SignedPublicKeyIdentities:Messagable {
     let signedPublicKeys:[SignedPublicKeyIdentity]
-
+    
+    public init(_ signedIdentities:[SignedPublicKeyIdentity]) {
+        self.signedPublicKeys = signedIdentities
+    }
+    
     public func toPackets() throws -> [Packet] {
         var packets = [Packet]()
         

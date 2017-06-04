@@ -8,6 +8,9 @@
 
 import Foundation
 
+/** 
+    A PGP Message is a sequence of Packets.
+ */
 public struct Message {
     let packets:[Packet]
     

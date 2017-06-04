@@ -15,7 +15,8 @@ public enum DataError : Error {
     case encoding
     case cryptoRandom
     case fingerprint
-    case range(Range<Int>)
+    case tooShort(Int)
+    case range(Int,Int)
 }
 
 public extension Int {
@@ -125,7 +126,7 @@ public extension Data {
         guard   self.count >= range.lowerBound + 1,
                 self.count >= range.upperBound
         else {
-            throw DataError.range(range)
+            throw DataError.range(range.lowerBound, range.upperBound)
         }
 
         return self.subdata(in: range)

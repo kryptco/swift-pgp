@@ -9,7 +9,43 @@
 import Foundation
 
 
-// MARK: Created Time
+/**
+    Represents possible Signature Subpacket types
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.1
+ */
+public enum SignatureSubpacketType:UInt8 {
+    case created        = 2
+    case keyExpires     = 9
+    case issuer         = 16
+    case keyFlags       = 27
+    
+    // not handeled specifically
+    case sigExpires                     = 3
+    case trust                          = 5
+    case preferedSymmetricKeyAlgorithms = 11
+    case preferedHashAlgorithms         = 21
+    case preferedCompressionAlgorithms  = 22
+    case keyServer                      = 23
+    case preferedKeyServer              = 24
+    case primaryUserID                  = 25
+    case features                       = 30
+    
+    case issuerFingerprint              = 33
+    
+    init(type:UInt8) throws {
+        guard let sigType = SignatureSubpacketType(rawValue: type) else {
+            throw SignatureSubpacketError.unsupportedType(type)
+        }
+        
+        self = sigType
+    }
+    
+}
+
+/**
+    Signature Creation Time
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.4
+ */
 public struct SignatureCreated:SignatureSubpacketable {
     public var type:SignatureSubpacketType {
         return .created
@@ -44,7 +80,10 @@ public struct SignatureCreated:SignatureSubpacketable {
     }
 }
 
-// MARK: Issuer
+/**
+    Signature Issuer
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.5
+ */
 public struct SignatureIssuer:SignatureSubpacketable, CustomDebugStringConvertible {
     public var type:SignatureSubpacketType {
         return .issuer
@@ -82,65 +121,10 @@ public struct SignatureIssuer:SignatureSubpacketable, CustomDebugStringConvertib
     }
 }
 
-// MARK: Key Flags
-public enum KeyFlagType:UInt8 {
-    case certifyOtherKeys       = 0x01
-    case signData               = 0x02
-    case encryptCommunication   = 0x04
-    case encryptStorage         = 0x08
-    case splitKey               = 0x10
-    case authentication         = 0x20
-    case ownedBySeveral         = 0x80
-}
-
-public struct SignatureKeyFlags:SignatureSubpacketable, CustomDebugStringConvertible {
-    public var type:SignatureSubpacketType {
-        return .keyFlags
-    }
-    
-    public var flags:[KeyFlagType]
-    public var unknowns:[UInt8]
-    
-    public enum SignatureIssuer:Error {
-        case invalidBodyLength(Int)
-    }
-    
-    public init(flagTypes:[KeyFlagType]) {
-        flags = flagTypes
-        unknowns = []
-    }
-    
-    public init(packet:SignatureSubpacket) throws {
-        guard packet.header.subpacketType == .keyFlags else {
-            throw SignatureSubpacketableError.invalidSubpacketType(packet.header.subpacketType)
-        }
-        
-        flags = []
-        unknowns = []
-        
-        for byte in packet.body.bytes {
-            guard let flag = KeyFlagType(rawValue: byte) else {
-                unknowns.append(byte)
-                continue
-            }
-            
-            flags.append(flag)
-        }
-    }
-    
-    public func toData() throws -> Data {
-        var data = Data(bytes: flags.map({ $0.rawValue }))
-        data.append(contentsOf: unknowns)
-        
-        return data
-    }
-    
-    public var debugDescription:String {
-        return "Key Flags: \(flags)"
-    }
-}
-
-// MARK: Key Expiration Time
+/**
+    Signature Key Expiration Time
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.6
+ */
 public struct SignatureKeyExpires:SignatureSubpacketable {
     public var type:SignatureSubpacketType {
         return .keyExpires
@@ -171,7 +155,9 @@ public struct SignatureKeyExpires:SignatureSubpacketable {
     }
 }
 
-// MARK: A Default Subpacket
+/**
+    Signature Issuer Fingerprint
+ */
 public struct SignatureIssuerFingerprint:SignatureSubpacketable {
     public var type:SignatureSubpacketType {
         return .issuerFingerprint
@@ -196,8 +182,70 @@ public struct SignatureIssuerFingerprint:SignatureSubpacketable {
     }
 }
 
+/**
+    Signature Key Flags
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.21
+ */
+public struct SignatureKeyFlags:SignatureSubpacketable, CustomDebugStringConvertible {
+    public var type:SignatureSubpacketType {
+        return .keyFlags
+    }
+    
+    public enum FlagType:UInt8 {
+        case certifyOtherKeys       = 0x01
+        case signData               = 0x02
+        case encryptCommunication   = 0x04
+        case encryptStorage         = 0x08
+        case splitKey               = 0x10
+        case authentication         = 0x20
+        case ownedBySeveral         = 0x80
+    }
+    
+    public var flags:[FlagType]
+    public var unknowns:[UInt8]
+    
+    public enum SignatureIssuer:Error {
+        case invalidBodyLength(Int)
+    }
+    
+    public init(flagTypes:[FlagType]) {
+        flags = flagTypes
+        unknowns = []
+    }
+    
+    public init(packet:SignatureSubpacket) throws {
+        guard packet.header.subpacketType == .keyFlags else {
+            throw SignatureSubpacketableError.invalidSubpacketType(packet.header.subpacketType)
+        }
+        
+        flags = []
+        unknowns = []
+        
+        for byte in packet.body.bytes {
+            guard let flag = FlagType(rawValue: byte) else {
+                unknowns.append(byte)
+                continue
+            }
+            
+            flags.append(flag)
+        }
+    }
+    
+    public func toData() throws -> Data {
+        var data = Data(bytes: flags.map({ $0.rawValue }))
+        data.append(contentsOf: unknowns)
+        
+        return data
+    }
+    
+    public var debugDescription:String {
+        return "Key Flags: \(flags)"
+    }
+}
 
-// MARK: A Default Subpacket
+/** 
+    A default signature subpacket
+ */
 public struct SignatureUnparsedSubpacket:SignatureSubpacketable {
     public var type:SignatureSubpacketType
     public var body:Data

@@ -9,7 +9,10 @@
 
 import Foundation
 
-
+/**
+    A UserID packet
+    https://tools.ietf.org/html/rfc4880#section-5.11
+ */
 public struct UserID:Packetable {
     
     public var tag:PacketTag {
@@ -28,7 +31,7 @@ public struct UserID:Packetable {
         
         guard let all = String(data: packet.body, encoding: .utf8)
         else {
-            throw FormatError.encoding
+            throw DataError.encoding
         }
         
         self.init(content: all)
@@ -48,7 +51,7 @@ public struct UserID:Packetable {
     
     public func toData() throws -> Data {
         guard let data = content.data(using: .utf8) else {
-            throw FormatError.encoding
+            throw DataError.encoding
         }
         
         return data

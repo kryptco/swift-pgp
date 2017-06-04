@@ -9,87 +9,50 @@
 
 import Foundation
 
-public struct UnsupportedPublicKeyAlgorithm:Error {
-    var type:UInt8
-}
-
+/**
+    Supported Public Key Algorithm Types
+    Full list: https://tools.ietf.org/html/rfc4880#section-9.1
+    + Ed25519: https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00
+ */
 public enum PublicKeyAlgorithm:UInt8 {
     case rsaEncryptOrSign = 1
     case rsaEncryptOnly = 2
     case rsaSignOnly = 3
-    
-    case ecc = 22
+    case ed25519 = 22
     
     init(type:UInt8) throws {
         guard let algo = PublicKeyAlgorithm(rawValue: type) else {
-            throw UnsupportedPublicKeyAlgorithm(type: type)
+            throw UnsupportedType(type: type)
         }
         
         self = algo
     }
-}
-
-public protocol PublicKeyData {
-    func toData() -> Data
-}
-public struct RSAPublicKey:PublicKeyData{
-    public let modulus:Data
-    public let exponent:Data
     
-    public init(modulus:Data, exponent:Data) {
-        self.modulus = modulus
-        self.exponent = exponent
-    }
-    
-    public func toData() -> Data {
-        var data = Data()
-        
-        // modulus:  MPI two-octet scalar length then modulus
-        data.append(contentsOf: UInt32(modulus.numBits).twoByteBigEndianBytes())
-        data.append(modulus)
-        
-        // exponent:  MPI two-octet scalar length then exponent
-        data.append(contentsOf: UInt32(exponent.numBits).twoByteBigEndianBytes())
-        data.append(exponent)
-        
-        return data
-    }
-}
-
-public struct ECCPublicKey:PublicKeyData {
-    public var rawData:Data
-    
-    public static let prefixByte:UInt8 = 0x40
-    //Ed25519 only for now
-    public static let curveOID:[UInt8] = [0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01]
-    public init(rawData:Data) {
-        self.rawData = rawData
-    }
-    
-    public func toData() -> Data {
-        var data = Data()
-        data.append(contentsOf: [UInt8(ECCPublicKey.curveOID.count)] + ECCPublicKey.curveOID)
-        
-        let prefixedRawData = Data(bytes: [ECCPublicKey.prefixByte] + rawData.bytes)
-        
-        data.append(contentsOf: UInt32(prefixedRawData.numBits).twoByteBigEndianBytes())
-        data.append(prefixedRawData)
-
-        return data
+    public struct UnsupportedType:Error {
+        var type:UInt8
     }
 }
 
 
+/**
+    A Public Key packet
+ */
 public struct PublicKey:Packetable {
+    
+    /**
+        Only supports version 4
+     */
     private let supportedVersion = 4
     
     public let tag:PacketTag
     
     public var created:Date
     public var algorithm:PublicKeyAlgorithm
-    
     public var publicKeyData:PublicKeyData
     
+    /**
+        Public key packet parsing error
+     */
     public enum ParsingError:Error {
         case tooShort(Int)
         case unsupportedVersion(UInt8)
@@ -106,6 +69,9 @@ public struct PublicKey:Packetable {
         self.created = date
     }
     
+    /**
+        Initialize a Public Key from a packet
+     */
     public init(packet:Packet) throws {
         
         // get packet tag, ensure it's a public key type
@@ -120,7 +86,7 @@ public struct PublicKey:Packetable {
         let data = packet.body
         
         guard data.count > 5 else {
-            throw FormatError.tooShort(data.count)
+            throw DataError.tooShort(data.count)
         }
         
         let bytes = data.bytes
@@ -143,14 +109,14 @@ public struct PublicKey:Packetable {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
             // modulus n (MPI: 2 + len(n))
             guard data.count >= start + 2 else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
             let modulusLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8
             
             start += 2
             guard data.count >= start + modulusLength else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
             let modulus = Data(bytes: bytes[start ..< start + modulusLength])
@@ -159,46 +125,47 @@ public struct PublicKey:Packetable {
             // public exponent e (MPI: 2 + len(e))
             start += modulusLength
             guard data.count >= start + 2 else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
             let exponentLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< (start+2)])) + 7)/8
             
             start += 2
             guard data.count >= start + exponentLength else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
             let exponent = Data(bytes: bytes[start ..< start + exponentLength])
             
             self.publicKeyData = RSAPublicKey(modulus: modulus, exponent: exponent)
-        case .ecc:
+            
+        case .ed25519:
             guard data.count >= start + 10 else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
-            guard Int(bytes[start]) == ECCPublicKey.curveOID.count else {
+            guard Int(bytes[start]) == Ed25519PublicKey.Constants.curveOID.count else {
                 throw ParsingError.badECCCurveOIDLength(bytes[start])
             }
             
             start += 1
             
             let curveOID = [UInt8](bytes[start ..< start + 9])
-            guard curveOID == ECCPublicKey.curveOID else {
+            guard curveOID == Ed25519PublicKey.Constants.curveOID else {
                 throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
             }
             
             start += 9
             
             guard data.count >= start + 2 else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
             let rawLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8 - 1
             
             start += 2
             
-            guard bytes[start] == ECCPublicKey.prefixByte else {
+            guard bytes[start] == Ed25519PublicKey.Constants.prefixByte else {
                 throw ParsingError.missingECCPrefixByte
 
             }
@@ -206,16 +173,17 @@ public struct PublicKey:Packetable {
             start += 1
             
             guard data.count >= start + rawLength else {
-                throw FormatError.tooShort(data.count)
+                throw DataError.tooShort(data.count)
             }
             
-            // - 1 for the prefix byte
             let rawData = Data(bytes: bytes[start ..< start + rawLength])
-            
-            self.publicKeyData = ECCPublicKey(rawData: rawData)
+            self.publicKeyData = Ed25519PublicKey(rawData: rawData)
         }
     }
     
+    /** 
+        Serialize public key to packet body data
+     */
     public func toData() throws -> Data {
         
         var data = Data()
@@ -235,6 +203,10 @@ public struct PublicKey:Packetable {
         return data
     }
 
+    /**
+        Compute the SHA1 fingerprint of the public key
+        https://tools.ietf.org/html/rfc4880#section-12.2
+     */
     public func fingerprint() throws -> Data {
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])
@@ -248,6 +220,9 @@ public struct PublicKey:Packetable {
         return dataToHash.SHA1
     }
 
+    /**
+        Compute the KeyID of a public key from its fingerprint
+     */
     public func keyID() throws -> Data {
         let fingerprint = try self.fingerprint()
         

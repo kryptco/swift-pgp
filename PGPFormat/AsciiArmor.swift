@@ -10,15 +10,8 @@ import Foundation
 
 
 /**
-    Parse this format to pull out packet data.
- 
-     -----BEGIN PGP PUBLIC KEY BLOCK-----
-     Comment: <String>
-     Data <String:Base64 Encoded Bytes>
-     =CRC24(Data) <String: Base64 encoded CRC-24 checksum>
-     -----END PGP PUBLIC KEY BLOCK-----
- */
-
+    ASCII Armor block constants
+*/
 public enum ArmorMessageBlock:String {
     case publicKey = "PUBLIC KEY BLOCK"
     case signature = "SIGNATURE"
@@ -48,6 +41,9 @@ public enum ArmorMessageBlock:String {
     
 }
 
+/**
+    ASCII Armor Parsing Errors
+*/
 public enum AsciiArmorError:Error {
     case noValidHeader
     case blockLineMismatch
@@ -56,6 +52,19 @@ public enum AsciiArmorError:Error {
     case invalidArmor
     
 }
+
+/**
+    An ASCII Armored PGP Message.
+    For example:
+ 
+     -----BEGIN PGP PUBLIC KEY BLOCK-----
+     Comment: <String>
+     Data <String:Base64 Encoded Bytes>
+     "=" + CRC24(Data) <String: Base64 encoded CRC-24 checksum>
+     -----END PGP PUBLIC KEY BLOCK-----
+ 
+    https://tools.ietf.org/html/rfc4880#section-6.2
+ */
 public struct AsciiArmorMessage {
     
     public let packetData:Data
@@ -64,21 +73,23 @@ public struct AsciiArmorMessage {
     public var comment:String?
     
     
-    public init(packetData:Data, blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") {
+    public init(packetData:Data, blockType:ArmorMessageBlock, comment:String?) {
         self.packetData = packetData
         self.crcChecksum = packetData.crc24Checksum
         self.blockType = blockType
         self.comment = comment
     }
     
-    public init(message:Message, blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {
+    /**
+        Convert a PGP Message to an ASCII Armored PGP Message block
+     */
+    public init(message:Message, blockType:ArmorMessageBlock, comment:String? = Constants.defaultASCIIArmorComment) throws {
         try self.init(packetData: message.data(), blockType: blockType, comment: comment)
     }
-//
-//    public init(packets:[Packet], blockType:ArmorMessageBlock, comment:String? = "Created with swift-pgp") throws {        
-//        try self.init(message: Message(packets: packets), blockType: blockType, comment: comment)
-//    }
 
+    /**
+        Parse an ASCII Armor string
+    */
     public init(string:String) throws {
         let lines = string.components(separatedBy: CharacterSet.newlines).filter { !$0.isEmpty }
         
@@ -120,7 +131,9 @@ public struct AsciiArmorMessage {
         self.packetData = packets
     }
     
-    
+    /**
+        Returns the ascii armored representation
+    */
     public func toString() -> String {
         let packetDataB64 = packetData.base64EncodedString(options: [.lineLength64Characters, .endLineWithLineFeed])
         

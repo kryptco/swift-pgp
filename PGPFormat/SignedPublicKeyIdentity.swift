@@ -8,7 +8,11 @@
 
 import Foundation
 
-public struct SignedPublicKeyIdentity:Signable {
+/**
+    A signed public key identity
+    A list of packets: public key, user id, signatures
+ */
+public struct SignedPublicKeyIdentity:Signable, Messagable {
     
     public var publicKey:PublicKey
     public var userID:UserID
@@ -49,17 +53,23 @@ public struct SignedPublicKeyIdentity:Signable {
     }
 }
 
-public extension Array where Element == SignedPublicKeyIdentity {
-    public func joinedMessage() throws -> Message {
+/**
+    A list of signed public key identites
+ */
+public struct SignedPublicKeyIdentities:Messagable {
+    let signedPublicKeys:[SignedPublicKeyIdentity]
+
+    public func toPackets() throws -> [Packet] {
         var packets = [Packet]()
-        if let first = self.first {
+        
+        if let first = signedPublicKeys.first {
             try packets.append(first.publicKey.toPacket())
         }
         
-        try self.forEach {
+        try signedPublicKeys.forEach {
             try packets.append(contentsOf: [$0.userID.toPacket(), $0.signature.toPacket()])
         }
         
-        return Message(packets: packets)
+        return packets
     }
 }

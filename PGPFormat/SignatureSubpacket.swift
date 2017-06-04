@@ -8,37 +8,40 @@
 
 import Foundation
 
-
-
-
-// MARK: SignatureSubpacketable
-
-public protocol SignatureSubpacketable {
-    var type:SignatureSubpacketType { get }
-    init(packet:SignatureSubpacket) throws
-    func toData() throws -> Data
-}
-
-public extension SignatureSubpacketable {
-
-    public func toSubpacket() throws -> SignatureSubpacket {
-        let body = try self.toData()
-        let header = try SignatureSubpacketHeader(type: self.type, bodyLength: body.count)
+/**
+    A Signature record type known as a "Signature Subpacket"
+    https://tools.ietf.org/html/rfc4880#section-5.2.3.1
+ */
+public struct SignatureSubpacket {
+    public let header:SignatureSubpacketHeader
+    public let body:Data
+    
+    public var length:Int {
+        return header.length + body.count
+    }
+    
+    public func toData() throws -> Data {
+        var data = Data()
         
-        return SignatureSubpacket(header: header, body: body)
-    }    
+        data.append(contentsOf: header.lengthBytes)
+        data.append(contentsOf: [header.subpacketType.rawValue])
+        data.append(contentsOf: body)
+        
+        return data
+    }
 }
-
-public enum SignatureSubpacketableError:Error {
-    case invalidSubpacketType(SignatureSubpacketType)
-}
-
 
 /**
- Signature Subpacket(s)
- https://tools.ietf.org/html/rfc4880#section-5.2.3.1
+    Signature subpacket error types
  */
+public enum SignatureSubpacketError:Error {
+    case invalidLength(Int)
+    case unsupportedType(UInt8)
+}
 
+/**
+    A list of signature subpackets
+ */
 public extension Array where Element == SignatureSubpacket {
     
     public init(data:Data) throws {
@@ -62,49 +65,12 @@ public extension Array where Element == SignatureSubpacket {
         self = packets
     }
     
-    public func toSignatureSubpacketables() throws -> [SignatureSubpacketable] {
-        var subpacketables = [SignatureSubpacketable]()
-        
-        for packet in self {
-            switch packet.header.subpacketType {
-            case .created:
-                try subpacketables.append(SignatureCreated(packet: packet))
-            case .keyExpires:
-                try subpacketables.append(SignatureKeyExpires(packet: packet))
-            case .issuer:
-                try subpacketables.append(SignatureIssuer(packet: packet))
-            case .keyFlags:
-                try subpacketables.append(SignatureKeyFlags(packet: packet))
-            case .issuerFingerprint:
-                try subpacketables.append(SignatureIssuerFingerprint(packet: packet))
-            default:
-                try subpacketables.append(SignatureUnparsedSubpacket(packet: packet))
-            }
-        }
-        
-        return subpacketables
-    }
 }
 
-public struct SignatureSubpacket {
-    public let header:SignatureSubpacketHeader
-    public let body:Data
-    
-    public var length:Int {
-        return header.length + body.count
-    }
-    
-    public func toData() throws -> Data {
-        var data = Data()
-        
-        data.append(contentsOf: header.lengthBytes)
-        data.append(contentsOf: [header.subpacketType.rawValue])
-        data.append(contentsOf: body)
-        
-        return data
-    }
-}
 
+/**
+    The header representing the body length of a Signature Subpacket
+ */
 public struct SignatureSubpacketHeader {
     public var subpacketType:SignatureSubpacketType
     
@@ -123,7 +89,7 @@ public struct SignatureSubpacketHeader {
         let end     = start + bodyLength - typeLength
         
         guard start < end else {
-            throw FormatError.badRange(start, end)
+            throw DataError.range(start, end)
         }
         
         return start ..< end
@@ -158,9 +124,12 @@ public struct SignatureSubpacketHeader {
 
     }
     
+    /**
+        Initialize a subpacket header from a byte sequence
+     */
     init(data:Data) throws {
         guard data.count > 0 else {
-            throw FormatError.tooShort(data.count)
+            throw DataError.tooShort(data.count)
         }
         
         let bytes = data.bytes
@@ -196,7 +165,7 @@ public struct SignatureSubpacketHeader {
         
         // read the type
         guard bytes.count >= lengthLength + typeLength else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
         
         subpacketType = try SignatureSubpacketType(type: bytes[lengthLength + typeLength - 1])
@@ -204,39 +173,3 @@ public struct SignatureSubpacketHeader {
     
 }
 
-/** 
-    https://tools.ietf.org/html/rfc4880#section-5.2.3.1
- */
-public enum SignatureSubpacketType:UInt8 {
-    case created        = 2
-    case keyExpires     = 9
-    case issuer         = 16
-    case keyFlags       = 27
-    
-    // not handeled specifically
-    case sigExpires                     = 3
-    case trust                          = 5
-    case preferedSymmetricKeyAlgorithms = 11
-    case preferedHashAlgorithms         = 21
-    case preferedCompressionAlgorithms  = 22
-    case keyServer                      = 23
-    case preferedKeyServer              = 24
-    case primaryUserID                  = 25
-    case features                       = 30
-
-    case issuerFingerprint              = 33
-    
-    init(type:UInt8) throws {
-        guard let sigType = SignatureSubpacketType(rawValue: type) else {
-            throw SignatureSubpacketError.unsupportedType(type)
-        }
-        
-        self = sigType
-    }
-    
-}
-
-public enum SignatureSubpacketError:Error {
-    case invalidLength(Int)
-    case unsupportedType(UInt8)
-}

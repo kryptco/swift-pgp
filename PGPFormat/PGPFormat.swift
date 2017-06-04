@@ -8,3 +8,6 @@
 
 import Foundation
 
+struct Constants {
+    static let defaultASCIIArmorComment = "Created with swift-pgp"
+}

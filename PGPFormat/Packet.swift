@@ -8,10 +8,37 @@
 
 import Foundation
 
-//MARK: Packet(s)
 
+/**
+    A PGP data record.
+    https://tools.ietf.org/html/rfc4880#section-4
+*/
+public struct Packet {
+    public let header:PacketHeader
+    public let body:Data
+    
+    public var length:Int {
+        return header.realLength + body.count
+    }
+    
+    public func toData() throws -> Data {
+        var data = Data()
+        
+        data.append(contentsOf: try header.bytes())
+        data.append(contentsOf: body)
+
+        return data
+    }
+}
+
+/**
+    A list of PGP data records.
+ */
 public extension Array where Element == Packet {
     
+    /** 
+        Initialize a list of packets from a byte sequence
+     */
     public init(data:Data) throws {
         
         var packetStart = 0
@@ -33,100 +60,9 @@ public extension Array where Element == Packet {
     }
 }
 
-public struct Packet {
-    public let header:PacketHeader
-    public let body:Data
-    
-    public var length:Int {
-        return header.realLength + body.count
-    }
-    
-    func tagByte() throws -> UInt8 {
-        let msb:UInt8 = 0b10000000
-        let format:UInt8 = header.length.newFormat ? 0b01000000 : 0b00000000
-        
-        var tag:UInt8
-        var lengthType:UInt8
-        if header.length.newFormat {
-            tag = header.tag.rawValue
-            lengthType = 0b00000000
-        } else {
-            tag = header.tag.rawValue << 2
-            
-            switch header.length.formatBytes.count {
-            case 1:
-                lengthType = PacketLength.OldFormatType.oneOctet.rawValue
-            case 2:
-                lengthType = PacketLength.OldFormatType.twoOctet.rawValue
-            case 4:
-                lengthType = PacketLength.OldFormatType.fourOctet.rawValue
-            default:
-                throw PacketError.invalidPacketLengthFormatByteLength(header.length.formatBytes.count)
-            }
-        }
-        
-        return msb | format | tag | lengthType
-    }
-    
-    public func toData() throws -> Data {
-        var data = Data()
-        
-        data.append(contentsOf: [try tagByte()])
-        data.append(contentsOf: header.length.formatBytes)
-        data.append(contentsOf: body)
-
-        return data
-    }
-}
-
-// MARK: Packetable
-public extension Array where Element == Packetable {
-    public init(data:Data) throws {
-        let packets = try [Packet](data: data)
-        
-        self = try packets.map {
-            switch $0.header.tag {
-            case .publicKey, .publicSubkey:
-                return try PublicKey(packet: $0)
-            case .userID:
-                return try UserID(packet: $0)
-            case .signature:
-                return try Signature(packet: $0)
-            }
-        }
-    }
-}
-
-
-
-public protocol Packetable {
-    var tag:PacketTag { get }
-    init(packet:Packet) throws
-    func toData() throws -> Data
-}
-
-public extension Packetable {
-    
-    public func toPacket() throws -> Packet {
-        let body = try self.toData()
-        let header = try PacketHeader(tag: self.tag, packetLength: PacketLength(body: body.count))
-        
-        return Packet(header: header, body: body)
-    }
-}
-
-public enum PacketableError:Error {
-    case invalidPacketTag(PacketTag)
-}
-
-// MARK: Errors
-public enum FormatError:Error {
-    case tooShort(Int)
-    case badRange(Int,Int)
-    case encoding
-
-}
-
+/**
+    Packet creation/serialization errors
+ */
 public enum PacketError:Error {
     case msbUnset
     case unsupportedTagType(UInt8)
@@ -142,40 +78,47 @@ public enum PacketError:Error {
 
 
 /**
-    First octet: Pack Tag
+    A header for the packet to determine the packet tag 
+    identifier and body length
+ 
+    First octet of the packet header:
      +---------------+
      PTag |7 6 5 4 3 2 1 0|
      +---------------+
  
-    - Bit 7 -- Always one
-    - Bit 6 -- New packet format if set
+    Bits 7-6:
+        - Bit 7 -- Always one
+        - Bit 6 -- New packet format if set
  
-    - NewFormat:
-         Bits 5-0 -- packet tag
- 
-    - OldFormat:
-         Bits 5-2 -- packet tag
-         Bits 1-0 -- length-type
-
+    Bits 5-0:
+        - NewFormat:
+            Bits 5-0 -- packet tag
+        - OldFormat:
+            Bits 5-2 -- packet tag
+            Bits 1-0 -- length-type
+    
+    https://tools.ietf.org/html/rfc4880#section-4.2
  */
 public struct PacketHeader {
 
-    public var tag:PacketTag
-    
+    public let tag:PacketTag
+    public let length:PacketLength
+
     private let tagLength = 1
-    
-    public var length:PacketLength
 
     public var realLength:Int {
         return tagLength + length.length
     }
     
+    /**
+        Data range for packet body
+     */
     public func bodyRange() throws -> Range<Int> {
         let start   = tagLength + length.length
         let end     = start + length.body
         
         guard start < end else {
-            throw FormatError.badRange(start, end)
+            throw DataError.range(start, end)
         }
         
         return start ..< end
@@ -186,9 +129,12 @@ public struct PacketHeader {
         self.tag = tag
     }
     
+    /**
+        Initialize packet header from byte sequence
+     */
     public init(data:Data) throws {
         guard data.count > 0 else {
-            throw FormatError.tooShort(data.count)
+            throw DataError.tooShort(data.count)
         }
         
         let bytes = data.bytes
@@ -215,8 +161,75 @@ public struct PacketHeader {
             self.init(tag: packetTag, packetLength: packetLength)
         }
     }
+    
+    /**
+        Compute the first byte, the tag byte, of the packet header
+     */
+    func tagByte() throws -> UInt8 {
+        let msb:UInt8 = 0b10000000
+        let format:UInt8 = length.newFormat ? 0b01000000 : 0b00000000
+        
+        var tagBits:UInt8
+        var lengthType:UInt8
+        if length.newFormat {
+            tagBits = tag.rawValue
+            lengthType = 0b00000000
+        } else {
+            tagBits = tag.rawValue << 2
+            
+            switch length.formatBytes.count {
+            case 1:
+                lengthType = PacketLength.OldFormatType.oneOctet.rawValue
+            case 2:
+                lengthType = PacketLength.OldFormatType.twoOctet.rawValue
+            case 4:
+                lengthType = PacketLength.OldFormatType.fourOctet.rawValue
+            default:
+                throw PacketError.invalidPacketLengthFormatByteLength(length.formatBytes.count)
+            }
+        }
+        
+        return msb | format | tagBits | lengthType
+    }
+    
+    /**
+        Convert the packet header to a byte sequence
+     */
+    func bytes() throws -> Data {
+        var data = Data()
+        
+        data.append(contentsOf: [try tagByte()])
+        data.append(contentsOf: length.formatBytes)
+
+        return data
+    }
+
 }
 
+/**
+    Represents the type of packet (the packet tag)
+    https://tools.ietf.org/html/rfc4880#section-4.3
+ 
+    //NOTE: not all currently supported
+ */
+public enum PacketTag:UInt8 {
+    case signature      = 2
+    case publicKey      = 6
+    case userID         = 13
+    case publicSubkey   = 14
+    
+    init(tag:UInt8) throws {
+        guard let packetTag = PacketTag(rawValue: tag) else {
+            throw PacketError.unsupportedTagType(tag)
+        }
+        self = packetTag
+    }
+}
+
+
+/**
+    Represents the length of the packet body
+ */
 public struct PacketLength {
     
     let length:Int
@@ -225,8 +238,10 @@ public struct PacketLength {
     let newFormat:Bool
     let formatBytes:[UInt8]
     
-    // currently creates old format bytes only
-    // todo: add new format
+    /**
+        Create a packet length from the length of a packet body
+        //TODO: add support new format
+     */
     public init(body:Int) throws {
         self.newFormat = false
         self.body = body
@@ -249,13 +264,14 @@ public struct PacketLength {
     }
     
     /**
-        New Format Parsing
+        Initialize a packet length with from a 'New Format' packet header
+        https://tools.ietf.org/html/rfc4880#section-4.2.2
     */
     init(newFormat bytes:[UInt8]) throws {
         newFormat = true
         
         guard bytes.count > 0 else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
         
         switch Int(bytes[0]) {
@@ -289,15 +305,9 @@ public struct PacketLength {
     
     
     /**
-        Length Format Parsing
-        https://tools.ietf.org/html/rfc4880 section 4.2.1
+        Initialize a packet length with from a 'Old Format' packet header
+        https://tools.ietf.org/html/rfc4880#section-4.2.1
      */
-    enum OldFormatType:UInt8 {
-        case oneOctet = 0
-        case twoOctet = 1
-        case fourOctet = 2
-    }
-    
     init(oldFormat bytes:[UInt8], type:UInt8) throws {
         newFormat = false
         
@@ -332,24 +342,14 @@ public struct PacketLength {
             formatBytes = [UInt8](bytes[0...3])
             
         default:
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
-        
     }
-
-}
-
-public enum PacketTag:UInt8 {
-    case signature      = 2
-    case publicKey      = 6
-    case userID         = 13
-    case publicSubkey   = 14
     
-    init(tag:UInt8) throws {
-        guard let packetTag = PacketTag(rawValue: tag) else {
-            throw PacketError.unsupportedTagType(tag)
-        }
-        self = packetTag
+    enum OldFormatType:UInt8 {
+        case oneOctet = 0
+        case twoOctet = 1
+        case fourOctet = 2
     }
 }
 

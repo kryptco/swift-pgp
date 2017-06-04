@@ -8,10 +8,12 @@
 
 import Foundation
 
+/**
+    Represents a structure that can be signed
+ */
 public protocol Signable {
     var signature:Signature { get set }
     func signableData() throws -> Data
-    func toPackets() throws -> [Packet]
 }
 
 public extension Signable {    
@@ -26,7 +28,4 @@ public extension Signable {
         try signature.set(hash: hash, signedHash: signedHash)
     }
     
-    public func toMessage() throws -> Message {
-        return try Message(packets: self.toPackets())
-    }
 }

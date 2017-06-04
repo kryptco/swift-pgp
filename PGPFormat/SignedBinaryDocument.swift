@@ -8,7 +8,11 @@
 
 import Foundation
 
-public struct SignedBinaryDocument:Signable {
+/**
+    Represents a signed binary document
+    Packets: a signature packet
+ */
+public struct SignedBinaryDocument:Signable, Messagable {
     public var binaryData:Data
     
     public var signature:Signature

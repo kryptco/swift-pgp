@@ -407,4 +407,5 @@ class PGPFormatTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
+
 }

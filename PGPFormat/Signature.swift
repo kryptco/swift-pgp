@@ -11,15 +11,19 @@ import Foundation
 
 
 /**
-    https://tools.ietf.org/html/rfc4880
-    Section 5.2.1
-*/
+    A Signature packet
+    https://tools.ietf.org/html/rfc4880#section-5.2
+ */
 public struct Signature:Packetable {
     
     public var tag:PacketTag {
         return .signature
     }
     
+    /**
+        The type of signature
+        https://tools.ietf.org/html/rfc4880#section-5.2.1
+     */
     public enum Kind:UInt8 {
         case binaryDocument = 0x00
         case userID = 0x10
@@ -38,8 +42,8 @@ public struct Signature:Packetable {
     }
     
     /**
-        https://tools.ietf.org/html/rfc4880
-        Section 9.4
+        Signature Hash Algorithm
+        https://tools.ietf.org/html/rfc4880#section-9.4
     */
     public enum HashAlgorithm:UInt8 {
         case sha1   = 2
@@ -57,6 +61,9 @@ public struct Signature:Packetable {
         }
     }
     
+    /**
+        Signature error types
+     */
     public enum ParsingError:Error {
         case unsupportedSignatureType(UInt8)
         case unsupportedVersion(UInt8)
@@ -73,21 +80,21 @@ public struct Signature:Packetable {
     
     
     /**
-        Signature Properties
+        Only support version 4 signatures
     */
     public let supportedVersion = 4
     
     public var kind:Kind
     public var publicKeyAlgorithm:PublicKeyAlgorithm
     public var hashAlgorithm:HashAlgorithm
-    
     public var hashedSubpacketables:[SignatureSubpacketable]
     public var unhashedSubpacketables:[SignatureSubpacketable]
-    
     public var signature:Data
-    
     public var leftTwoHashBytes:[UInt8]
 
+    /**
+        Initialize a signature from a packet
+     */
     public init(packet:Packet) throws {
         guard packet.header.tag == .signature else {
             throw PacketableError.invalidPacketTag(packet.header.tag)
@@ -96,7 +103,7 @@ public struct Signature:Packetable {
         let data = packet.body
         
         guard data.count >= 6 else {
-            throw FormatError.tooShort(data.count)
+            throw DataError.tooShort(data.count)
         }
         
         let bytes = data.bytes
@@ -115,7 +122,7 @@ public struct Signature:Packetable {
         
         var ptr = 6
         guard bytes.count >= ptr + hashedDataLength else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
         
         hashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + hashedDataLength)])).toSignatureSubpacketables()
@@ -124,14 +131,14 @@ public struct Signature:Packetable {
 
         // unhashed subpackets
         guard bytes.count >= ptr + 2 else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
         
         let unhashedDataLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])))
         ptr += 2
         
         guard bytes.count >= ptr + unhashedDataLength else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
         }
         
         unhashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + unhashedDataLength)])).toSignatureSubpacketables()
@@ -140,7 +147,7 @@ public struct Signature:Packetable {
         
         // left 16 bits of signed hash
          guard bytes.count >= ptr + 2 else {
-            throw FormatError.tooShort(bytes.count)
+            throw DataError.tooShort(bytes.count)
          }
         
         // ignoring
@@ -153,30 +160,30 @@ public struct Signature:Packetable {
         case .rsaEncryptOrSign, .rsaSignOnly:
             
             guard bytes.count >= ptr + 2 else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             let signatureLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
             ptr += 2
             
             guard bytes.count >= ptr + signatureLength else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             signature = Data(bytes: bytes[ptr ..< (ptr + signatureLength)])
             
-        case .ecc:
+        case .ed25519:
             
             // first point
             guard bytes.count >= ptr + 2 else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             let firstPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
             ptr += 2
             
             guard bytes.count >= ptr + firstPointLength else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             let firstPoint = Data(bytes: bytes[ptr ..< (ptr + firstPointLength)])
@@ -185,14 +192,14 @@ public struct Signature:Packetable {
             
             // second point
             guard bytes.count >= ptr + 2 else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             let secondPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
             ptr += 2
             
             guard bytes.count >= ptr + secondPointLength else {
-                throw FormatError.tooShort(bytes.count)
+                throw DataError.tooShort(bytes.count)
             }
             
             let secondPoint = Data(bytes: bytes[ptr ..< (ptr + secondPointLength)])
@@ -204,7 +211,7 @@ public struct Signature:Packetable {
             signature = sigData
             
         case .rsaEncryptOnly:
-            throw UnsupportedPublicKeyAlgorithm(type: publicKeyAlgorithm.rawValue)
+            throw PublicKeyAlgorithm.UnsupportedType(type: publicKeyAlgorithm.rawValue)
             
         }
 
@@ -221,6 +228,10 @@ public struct Signature:Packetable {
         self.signature = Data()
     }
     
+    /**
+        Serialize the signature data that is part of the data to hash and sign
+        https://tools.ietf.org/html/rfc4880#section-5.2.4
+     */
     public func signedData() throws -> Data {
         var data = Data()
         
@@ -245,6 +256,10 @@ public struct Signature:Packetable {
         return data
     }
     
+    /**
+        Serialize the signedData with the trailer that is to be hashed
+        https://tools.ietf.org/html/rfc4880#section-5.2.4
+     */
     public func dataToHash() throws -> Data {
         var dataToHash = Data()
         
@@ -258,6 +273,10 @@ public struct Signature:Packetable {
         return dataToHash
     }
 
+    /**
+        Signature trailer
+        https://tools.ietf.org/html/rfc4880#section-5.2.4
+     */
     public func trailer(for signatureData:Data) -> Data {
         // trailer
         var data = Data()
@@ -268,6 +287,9 @@ public struct Signature:Packetable {
         return data
     }
     
+    /**
+        Set the signature data and left two hash bytes
+     */
     mutating public func set(hash:Data, signedHash:Data) throws {
         guard hash.count >= 2 else {
             throw Signature.SerializingError.invalidHashLength(hash.count)
@@ -276,7 +298,9 @@ public struct Signature:Packetable {
         self.signature = signedHash
     }
 
-    // MARK: Serializing
+    /**
+        Serialize signature to packet body
+     */
     public func toData() throws -> Data {
         var data = try signedData()
         
@@ -301,7 +325,8 @@ public struct Signature:Packetable {
         case .rsaEncryptOrSign, .rsaSignOnly:
             data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())
             data.append(signature)
-        case .ecc:
+            
+        case .ed25519:
             guard signature.count == 64 else {
                 throw SerializingError.invalidSignatureLength(signature.count)
             }
@@ -316,7 +341,7 @@ public struct Signature:Packetable {
             data.append(secondPoint)
             
         case .rsaEncryptOnly:
-            throw UnsupportedPublicKeyAlgorithm(type: publicKeyAlgorithm.rawValue)
+            throw PublicKeyAlgorithm.UnsupportedType(type: publicKeyAlgorithm.rawValue)
         }
         
         return data

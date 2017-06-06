@@ -14,10 +14,10 @@ import Foundation
 public struct Message {
     let packets:[Packet]
     
-    public func data() throws -> Data {
+    public func data() -> Data {
         var packetData = Data()
-        try packets.forEach {
-            try packetData.append($0.toData())
+        packets.forEach {
+            packetData.append($0.toData())
         }
         
         return packetData
@@ -35,7 +35,7 @@ public struct Message {
         try self.init(data: base64.fromBase64())
     }
     
-    public func armoredMessage(blockType:ArmorMessageBlock, comment:String? = nil) throws -> AsciiArmorMessage {
-        return try AsciiArmorMessage(message: self, blockType: blockType, comment: comment)
+    public func armoredMessage(blockType:ArmorMessageBlock, comment:String? = nil) -> AsciiArmorMessage {
+        return AsciiArmorMessage(message: self, blockType: blockType, comment: comment)
     }
 }

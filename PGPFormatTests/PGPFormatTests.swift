@@ -408,4 +408,94 @@ class PGPFormatTests: XCTestCase {
         }
     }
 
+    func testOldPacketLengthSerialization() {
+        do {
+            do {
+                let length = try PacketLength(body: 100)
+                guard case .old(let l) = length.length,
+                    l == .oneOctet,
+                    length.formatBytes == [UInt8]([0x64]) else {
+                        XCTFail("incorrect length")
+                        return
+                }
+            }
+            do {
+                let length = try PacketLength(body: 1723)
+                guard case .old(let l) = length.length,
+                    l == .twoOctet,
+                    length.formatBytes == [UInt8]([0x06, 0xBB]) else {
+                        XCTFail("incorrect length")
+                        return
+                }
+            }
+            do {
+                let length = try PacketLength(body: 100000)
+                guard case .old(let l) = length.length,
+                    l == .fourOctet,
+                    length.formatBytes == [UInt8]([0x00, 0x01, 0x86, 0xA0]) else {
+                        XCTFail("incorrect length")
+                        return
+                }
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testOldPacketLengthDeserialization() {
+        do {
+            do {
+                let length = try PacketLength(oldFormat: [0x64], type: PacketLength.OldFormatType.oneOctet.rawValue)
+                guard length.body == 100 else {
+                        XCTFail("incorrect length")
+                    return
+                }
+            }
+            do {
+                let length = try PacketLength(oldFormat: [0x06, 0xBB], type: PacketLength.OldFormatType.twoOctet.rawValue)
+                guard length.body == 1723 else {
+                        XCTFail("incorrect length")
+                    return
+                }
+            }
+            do {
+                let length = try PacketLength(oldFormat: [0x00, 0x01, 0x86, 0xA0], type: PacketLength.OldFormatType.fourOctet.rawValue)
+                guard length.body == 100000 else {
+                        XCTFail("incorrect length")
+                    return
+                }
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testNewPacketLengthDeserialization() {
+        do {
+            do {
+                let length = try PacketLength(newFormat: [0x64])
+                guard length.body == 100 else {
+                    XCTFail("incorrect length")
+                    return
+                }
+            }
+            do {
+                let length = try PacketLength(newFormat: [0xC5, 0xFB])
+                guard length.body == 1723 else {
+                    XCTFail("incorrect length")
+                    return
+                }
+            }
+            do {
+                let length = try PacketLength(newFormat: [0xFF, 0x00, 0x01, 0x86, 0xA0])
+                guard length.body == 100000 else {
+                    XCTFail("incorrect length")
+                    return
+                }
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
 }

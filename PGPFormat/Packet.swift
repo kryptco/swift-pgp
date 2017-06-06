@@ -16,15 +16,15 @@ import Foundation
 public struct Packet {
     public let header:PacketHeader
     public let body:Data
-    
+
     public var length:Int {
         return header.realLength + body.count
     }
     
-    public func toData() throws -> Data {
+    public func toData() -> Data {
         var data = Data()
         
-        data.append(contentsOf: try header.bytes())
+        data.append(contentsOf: header.bytes())
         data.append(contentsOf: body)
 
         return data
@@ -107,14 +107,14 @@ public struct PacketHeader {
     private let tagLength = 1
 
     public var realLength:Int {
-        return tagLength + length.length
+        return tagLength + length.byteLength()
     }
     
     /**
         Data range for packet body
      */
     public func bodyRange() throws -> Range<Int> {
-        let start   = tagLength + length.length
+        let start   = realLength
         let end     = start + length.body
         
         guard start < end else {
@@ -165,40 +165,32 @@ public struct PacketHeader {
     /**
         Compute the first byte, the tag byte, of the packet header
      */
-    func tagByte() throws -> UInt8 {
+    func tagByte() -> UInt8 {
         let msb:UInt8 = 0b10000000
-        let format:UInt8 = length.newFormat ? 0b01000000 : 0b00000000
+        let format:UInt8 = length.isNewFormat() ? 0b01000000 : 0b00000000
         
         var tagBits:UInt8
         var lengthType:UInt8
-        if length.newFormat {
+
+        switch length.length {
+        case .new(_):
             tagBits = tag.rawValue
             lengthType = 0b00000000
-        } else {
+        case .old(let l):
             tagBits = tag.rawValue << 2
-            
-            switch length.formatBytes.count {
-            case 1:
-                lengthType = PacketLength.OldFormatType.oneOctet.rawValue
-            case 2:
-                lengthType = PacketLength.OldFormatType.twoOctet.rawValue
-            case 4:
-                lengthType = PacketLength.OldFormatType.fourOctet.rawValue
-            default:
-                throw PacketError.invalidPacketLengthFormatByteLength(length.formatBytes.count)
-            }
+            lengthType = l.rawValue
         }
-        
+
         return msb | format | tagBits | lengthType
     }
     
     /**
         Convert the packet header to a byte sequence
      */
-    func bytes() throws -> Data {
+    func bytes() -> Data {
         var data = Data()
         
-        data.append(contentsOf: [try tagByte()])
+        data.append(contentsOf: [tagByte()])
         data.append(contentsOf: length.formatBytes)
 
         return data
@@ -231,11 +223,10 @@ public enum PacketTag:UInt8 {
     Represents the length of the packet body
  */
 public struct PacketLength {
-    
-    let length:Int
+
+    let length:Length
     let body:Int
     
-    let newFormat:Bool
     let formatBytes:[UInt8]
     
     /**
@@ -243,19 +234,19 @@ public struct PacketLength {
         //TODO: add support new format
      */
     public init(body:Int) throws {
-        self.newFormat = false
         self.body = body
         
         switch body {
         case 0 ..< Int(UInt8.max):
-            length = 1
+            length = .old(.oneOctet)
             formatBytes = [UInt8(body)]
+
         case 256 ..< Int(UInt16.max):
-            length = 2
+            length = .old(.twoOctet)
             formatBytes = UInt32(body).twoByteBigEndianBytes()
             
         case Int(UInt16.max) ..< Int(Int32.max):
-            length = 4
+            length = .old(.fourOctet)
             formatBytes = UInt32(body).fourByteBigEndianBytes()
         
         default:
@@ -268,33 +259,31 @@ public struct PacketLength {
         https://tools.ietf.org/html/rfc4880#section-4.2.2
     */
     init(newFormat bytes:[UInt8]) throws {
-        newFormat = true
-        
         guard bytes.count > 0 else {
             throw DataError.tooShort(bytes.count)
         }
         
         switch Int(bytes[0]) {
         case 0...191: // one octet
-            length = 1
+            length = .new(.oneOctet)
             body = Int(bytes[0])
             formatBytes = [bytes[0]]
             
-        case 192 ..< 224 where bytes.count > 1: // two octet
+        case 192 ..< 224 where bytes.count >= 2: // two octet
             let firstOctet = Int(bytes[0])
             let secondOctet = Int(bytes[1])
             
-            length = 2
+            length = .new(.twoOctet)
             body = ((firstOctet - 192) << 8) + secondOctet + 192
             formatBytes = [UInt8](bytes[0...1])
             
-        case 255 where bytes.count > 4: // five octet
+        case 255 where bytes.count >= 5: // five octet
             let secondOctet = Int(bytes[1])
             let thirdOctet = Int(bytes[2])
             let fourthOctet = Int(bytes[3])
             let fifthOctet = Int(bytes[4])
             
-            length = 5
+            length = .new(.fiveOctet)
             body = (secondOctet << 24) | (thirdOctet << 16) | (fourthOctet << 8)  | fifthOctet
             formatBytes = [UInt8](bytes[1...4])
 
@@ -309,35 +298,33 @@ public struct PacketLength {
         https://tools.ietf.org/html/rfc4880#section-4.2.1
      */
     init(oldFormat bytes:[UInt8], type:UInt8) throws {
-        newFormat = false
-        
         guard let lengthType = OldFormatType(rawValue: type) else {
             throw PacketError.unsupportedOldFormatLengthType(type)
         }
         
         switch lengthType {
-        case .oneOctet where bytes.count > 0:
-            length = 1
+        case .oneOctet where bytes.count >= 1:
+            length = .old(.oneOctet)
             body = Int(bytes[0])
             formatBytes = [bytes[0]]
 
 
-        case .twoOctet where bytes.count > 1:
+        case .twoOctet where bytes.count >= 2:
             let firstOctet = Int(bytes[0])
             let secondOctet = Int(bytes[1])
             
-            length = 2
+            length = .old(.twoOctet)
             body = (firstOctet << 8) | secondOctet
             formatBytes = [UInt8](bytes[0...1])
 
 
-        case .fourOctet where bytes.count > 4:
+        case .fourOctet where bytes.count >= 4:
             let firstOctet = Int(bytes[0])
             let secondOctet = Int(bytes[1])
             let thirdOctet = Int(bytes[2])
             let fourthOctet = Int(bytes[3])
 
-            length = 4
+            length = .old(.fourOctet)
             body = (firstOctet << 24) | (secondOctet << 16) | (thirdOctet << 8)  | fourthOctet
             formatBytes = [UInt8](bytes[0...3])
             
@@ -345,12 +332,60 @@ public struct PacketLength {
             throw DataError.tooShort(bytes.count)
         }
     }
-    
+
     enum OldFormatType:UInt8 {
         case oneOctet = 0
         case twoOctet = 1
         case fourOctet = 2
     }
+
+    enum NewFormatType {
+        case oneOctet
+        case twoOctet
+        case fiveOctet
+    }
+
+    enum Length {
+        case new(NewFormatType)
+        case old(OldFormatType)
+
+        func byteLength() -> UInt8 {
+            switch self {
+            case .old(let l):
+                switch l {
+                case .oneOctet:
+                    return 1
+                case .twoOctet:
+                    return 2
+                case .fourOctet:
+                    return 4
+                }
+            case .new(let l):
+                switch l {
+                case .oneOctet:
+                    return 1
+                case .twoOctet:
+                    return 2
+                case .fiveOctet:
+                    return 5
+                }
+            }
+        }
+    }
+    
+    func byteLength() ->  Int {
+        return Int(length.byteLength())
+    }
+
+    func isNewFormat() -> Bool {
+        switch length {
+        case .old(_):
+            return false
+        case .new(_):
+            return true
+        }
+    }
+    
 }
 
 

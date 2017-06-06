@@ -83,8 +83,8 @@ public struct AsciiArmorMessage {
     /**
         Convert a PGP Message to an ASCII Armored PGP Message block
      */
-    public init(message:Message, blockType:ArmorMessageBlock, comment:String? = Constants.defaultASCIIArmorComment) throws {
-        try self.init(packetData: message.data(), blockType: blockType, comment: comment)
+    public init(message:Message, blockType:ArmorMessageBlock, comment:String? = Constants.defaultASCIIArmorComment) {
+        self.init(packetData: message.data(), blockType: blockType, comment: comment)
     }
 
     /**

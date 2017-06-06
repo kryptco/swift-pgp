@@ -20,7 +20,7 @@ public struct SignatureSubpacket {
         return header.length + body.count
     }
     
-    public func toData() throws -> Data {
+    public func toData() -> Data {
         var data = Data()
         
         data.append(contentsOf: header.lengthBytes)

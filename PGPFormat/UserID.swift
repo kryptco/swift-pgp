@@ -49,12 +49,8 @@ public struct UserID:Packetable {
     }
 
     
-    public func toData() throws -> Data {
-        guard let data = content.data(using: .utf8) else {
-            throw DataError.encoding
-        }
-        
-        return data
+    public func toData() -> Data {
+        return Data(bytes: [UInt8](content.utf8))
     }
 
     mutating private func setNameAndEmail() {

@@ -243,14 +243,14 @@ public struct Signature:Packetable {
         // hashed subpackets
         let hashedSubpackets = try hashedSubpacketables.map({ try $0.toSubpacket() })
         let hashedSubpacketLength = hashedSubpackets.reduce(0, { $0 + $1.length })
-        guard hashedSubpacketLength <= Int(Int32.max) else {
+        guard hashedSubpacketLength <= Int(UInt16.max) else {
             throw SerializingError.tooManySubpackets
         }
         // length
         data.append(contentsOf: UInt32(hashedSubpacketLength).twoByteBigEndianBytes())
         // data
-        try hashedSubpackets.forEach {
-            data.append(try $0.toData())
+        hashedSubpackets.forEach {
+            data.append($0.toData())
         }
         
         return data
@@ -307,14 +307,14 @@ public struct Signature:Packetable {
         // un-hashed subpackets
         let unhashedSubpackets = try unhashedSubpacketables.map({ try $0.toSubpacket() })
         let unhashedSubpacketLength = unhashedSubpackets.reduce(0, { $0 + $1.length })
-        guard unhashedSubpacketLength <= Int(Int32.max) else {
+        guard unhashedSubpacketLength <= Int(UInt16.max) else {
             throw SerializingError.tooManySubpackets
         }
         // length
         data.append(contentsOf: UInt32(unhashedSubpacketLength).twoByteBigEndianBytes())
         // data
-        try unhashedSubpackets.forEach {
-            data.append(try $0.toData())
+        unhashedSubpackets.forEach {
+            data.append($0.toData())
         }
         
         // left 16 bits

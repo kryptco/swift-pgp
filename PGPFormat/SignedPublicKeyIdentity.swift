@@ -28,18 +28,18 @@ public struct SignedPublicKeyIdentity:Signable, Messagable {
 
     }
     
-    public func signableData() throws -> Data {
+    public func signableData() -> Data {
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])
         
         // pubkey length + data
-        let publicKeyPacketData = try publicKey.toData()
+        let publicKeyPacketData = publicKey.toData()
         let pubKeyLengthBytes = UInt32(publicKeyPacketData.count).twoByteBigEndianBytes()
         dataToHash.append(contentsOf: pubKeyLengthBytes)
         dataToHash.append(publicKeyPacketData)
         
         // userid byte, length + data
-        let userIdPacketData = try userID.toData()
+        let userIdPacketData = userID.toData()
         let userIdLengthBytes = UInt32(userIdPacketData.count).fourByteBigEndianBytes()
         dataToHash.append(contentsOf: [0xB4])
         dataToHash.append(contentsOf: userIdLengthBytes)

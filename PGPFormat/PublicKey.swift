@@ -134,7 +134,7 @@ public struct PublicKey:Packetable {
             guard data.count >= start + exponentLength else {
                 throw DataError.tooShort(data.count)
             }
-            
+
             let exponent = Data(bytes: bytes[start ..< start + exponentLength])
             
             self.publicKeyData = RSAPublicKey(modulus: modulus, exponent: exponent)
@@ -184,7 +184,7 @@ public struct PublicKey:Packetable {
     /** 
         Serialize public key to packet body data
      */
-    public func toData() throws -> Data {
+    public func toData() -> Data {
         
         var data = Data()
         
@@ -207,12 +207,12 @@ public struct PublicKey:Packetable {
         Compute the SHA1 fingerprint of the public key
         https://tools.ietf.org/html/rfc4880#section-12.2
      */
-    public func fingerprint() throws -> Data {
+    public func fingerprint() -> Data {
         var dataToHash = Data()
         dataToHash.append(contentsOf: [0x99])
         
         // pubkey length + data
-        let publicKeyPacketData = try self.toData()
+        let publicKeyPacketData = self.toData()
         let pubKeyLengthBytes = UInt32(publicKeyPacketData.count).twoByteBigEndianBytes()
         dataToHash.append(contentsOf: pubKeyLengthBytes)
         dataToHash.append(publicKeyPacketData)
@@ -224,7 +224,7 @@ public struct PublicKey:Packetable {
         Compute the KeyID of a public key from its fingerprint
      */
     public func keyID() throws -> Data {
-        let fingerprint = try self.fingerprint()
+        let fingerprint = self.fingerprint()
         
         guard fingerprint.count == 20 else {
             throw ParsingError.invalidFinerprintLength(fingerprint.count)

@@ -76,9 +76,9 @@ public struct SignatureSubpacketHeader {
     
     private let typeLength = 1
     
-    public var lengthLength:Int
-    public var lengthBytes:[UInt8]
-    public var bodyLength:Int
+    public let lengthLength:Int
+    public let lengthBytes:[UInt8]
+    public let bodyLength:Int
     
     public var length:Int {
         return typeLength + lengthLength

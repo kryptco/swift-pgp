@@ -14,8 +14,8 @@ import Foundation
  */
 public struct SignedPublicKeyIdentity:Signable, Messagable {
     
-    public var publicKey:PublicKey
-    public var userID:UserID
+    public let publicKey:PublicKey
+    public let userID:UserID
     public var signature:Signature
     
     public init(publicKey:PublicKey, userID:UserID, hashAlgorithm:Signature.HashAlgorithm, hashedSubpacketables:[SignatureSubpacketable] = []) throws {

@@ -1,3 +1,3 @@
 check:
-	xcodebuild test -project Kryptonite.xcodeproj -scheme Debug -destination 'platform=iOS Simulator,name=iPhone 7'
+	xcodebuild test -project PGPFormat.xcodeproj -scheme PGPFormatTests -destination 'platform=iOS Simulator,name=iPhone 7'
 

@@ -230,7 +230,7 @@ public struct PublicKey:Packetable {
             throw ParsingError.invalidFinerprintLength(fingerprint.count)
         }
         
-        return Data(bytes: [UInt8](fingerprint[12 ..< 20]))
+        return Data(bytes: fingerprint.bytes[12 ..< 20])
     }
 }
 

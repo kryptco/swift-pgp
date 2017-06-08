@@ -172,15 +172,18 @@ class PGPFormatTests: XCTestCase {
                 let packetOriginal = packet
                 let pubKeyOriginal = try PublicKey(packet: packetOriginal)
                 
-                let fp = try pubKeyOriginal.fingerprint().hex
-                let keyID = try pubKeyOriginal.keyID().hex
+                let fp = try pubKeyOriginal.fingerprint()
+                let keyID = try pubKeyOriginal.keyID()
                 
-                guard fp.uppercased() == "F7A83D5CE65C42817A4AB7647A1037F5EF07891E" else {
+                print(fp.bytes)
+                print(keyID.bytes)
+                
+                guard fp.hex.uppercased() == "F7A83D5CE65C42817A4AB7647A1037F5EF07891E" else {
                     XCTFail("Fingerprint does not match, got: \(fp)")
                     return
                 }
                 
-                guard keyID.uppercased() == "7A1037F5EF07891E" else {
+                guard keyID.hex.uppercased() == "7A1037F5EF07891E" else {
                     XCTFail("KeyID does not match, got: \(keyID)")
                     return
                 }

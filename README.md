@@ -5,7 +5,10 @@ Includes support for Ed25519 public keys.
 
 > 1: Except for SHA hash functions from CommonCrypto.
 
+# License
+We are currently working on a new license for Kryptonite. For now, the code
+is released under All Rights Reserved.
+
 //# Features
 //# Getting Started
-//# License
 //# Contributing 

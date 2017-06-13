@@ -13,20 +13,20 @@ For more information, check out [krypt.co](https://krypt.co).
 Currently, swift-pgp only signatures for certifications and binary documents, but it's abstracted to support the full RFC 4880 spec, see the next section for whats in the pipeline.
 
 - Public Keys: parse and create PGP public keys
-    [ x ] RSA
-    [ x ] Ed25519 (via ext. [eddsa draft](https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00))
+    - [ x ] RSA
+    - [ x ] Ed25519 (via ext. [eddsa draft](https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00))
     
 - Signatures: parse and create PGP Signatures
-    [ x ] Certify Public Key <> User ID binding (aka Certification Signatures)
-    [ x ] Binary Documents 
+    - [ x ] Certify Public Key <> User ID binding (aka Certification Signatures)
+    - [ x ] Binary Documents 
 
  - ASCII Armor: parse and create ASCII armored PGP messages
 
 # Coming Soon
 The next phase of swift-pgp is to support formatting PGP encrypted messages. This will add support for parsing and creating structures like:
 
- [ ] Symmetric-Key Encrypted Session Keys
- [ ] Symmetrically Encrypted Data
+- [ ] Symmetric-Key Encrypted Session Keys
+- [ ] Symmetrically Encrypted Data
  
 # How to use swift-pgp
 Create signatures with swift-pgp by utilizing the `Signable` interface. The `Signable` interface is what makes the swift-pgp library public-key-cryptography-implementation-agnostic.

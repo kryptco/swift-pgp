@@ -13,12 +13,12 @@ For more information, check out [krypt.co](https://krypt.co).
 Currently, swift-pgp only signatures for certifications and binary documents, but it's abstracted to support the full RFC 4880 spec, see the next section for whats in the pipeline.
 
 - Public Keys: parse and create PGP public keys
-    - [ x ] RSA
-    - [ x ] Ed25519 (via ext. [eddsa draft](https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00))
+    - [x] RSA
+    - [x] Ed25519 (via ext. [eddsa draft](https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00))
     
 - Signatures: parse and create PGP Signatures
-    - [ x ] Certify Public Key <> User ID binding (aka Certification Signatures)
-    - [ x ] Binary Documents 
+    - [x] Certify Public Key <> User ID binding (aka Certification Signatures)
+    - [x] Binary Documents 
 
  - ASCII Armor: parse and create ASCII armored PGP messages
 

@@ -5,7 +5,9 @@ A pure<sup>1</sup> Swift library for parsing and creating PGP [RFC 4880](https:/
 
 # Created For Kryptonite 
 <a href="https://krypt.co"><img src="https://krypt.co/static/dist/img/kryptonite-logo-green-on-white.svg" width="200"/> </a> 
-This library was created for __Kryptonite__. For more information, check out [krypt.co](https://krypt.co).
+
+This library was created for __Kryptonite__. 
+For more information, check out [krypt.co](https://krypt.co).
 
 # Supported Features
 Currently, swift-pgp only signatures for certifications and binary documents, but it's abstracted to support the full RFC 4880 spec, see the next section for whats in the pipeline.

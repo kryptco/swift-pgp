@@ -14,7 +14,6 @@ class PGPFormatTests: XCTestCase {
     var pubkey1:String!
     var pubkey2:String!
     var pubkeyEd25519:String!
-    var pubkeyEd25519_2:String!
 
     var binarySignature:String!
     var binaryDocument:String!
@@ -26,7 +25,6 @@ class PGPFormatTests: XCTestCase {
         pubkey1 = try! String(contentsOfFile: bundle.path(forResource: "pubkey1", ofType: "txt")!)
         pubkey2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey2", ofType: "txt")!)
         pubkeyEd25519 = try! String(contentsOfFile: bundle.path(forResource: "pubkey3", ofType: "txt")!)
-        pubkeyEd25519_2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey4", ofType: "txt")!)
 
         binarySignature = try! String(contentsOfFile: bundle.path(forResource: "signature", ofType: "txt")!)
         binaryDocument = try! String(contentsOfFile: bundle.path(forResource: "signed_raw", ofType: "txt")!)
@@ -43,7 +41,7 @@ class PGPFormatTests: XCTestCase {
             let pubMsg = try AsciiArmorMessage(string: pubkey1)
 
             if pubMsg.comment != "Some test hello" {
-                XCTFail("invalid comment: \(pubMsg.comment)")
+                XCTFail("invalid comment: \(String(describing: pubMsg.comment))")
             }
             
             if pubMsg.crcChecksum.toBase64() != "m4zw" {
@@ -54,7 +52,7 @@ class PGPFormatTests: XCTestCase {
                 XCTFail("invalid block type: \(pubMsg.blockType)")
             }
             
-            let pubMsgAgain = try AsciiArmorMessage(string: pubMsg.toString())
+            let _ = try AsciiArmorMessage(string: pubMsg.toString())
 
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -84,7 +82,7 @@ class PGPFormatTests: XCTestCase {
                 let pubKeyOriginal = try PublicKey(packet: packetOriginal)
                 
                 let packetSerialized = try pubKeyOriginal.toPacket()
-                let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
+                let _ = try PublicKey(packet: packetSerialized)
                 
                 guard packetSerialized.body == packetOriginal.body else {
                     print("original: \(packetOriginal.body.bytes)")
@@ -112,7 +110,7 @@ class PGPFormatTests: XCTestCase {
                 let pubKeyOriginal = try PublicKey(packet: packetOriginal)
                 
                 let packetSerialized = try pubKeyOriginal.toPacket()
-                let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
+                let _ = try PublicKey(packet: packetSerialized)
                 
                 guard packetSerialized.body == packetOriginal.body else {
                     print("original: \(packetOriginal.body.bytes)")
@@ -139,7 +137,7 @@ class PGPFormatTests: XCTestCase {
             let pubKeyOriginal = try PublicKey(packet: packetOriginal)
             
             let packetSerialized = try pubKeyOriginal.toPacket()
-            let pubKeyDeserialized = try PublicKey(packet: packetSerialized)
+            let _ = try PublicKey(packet: packetSerialized)
             
             guard packetSerialized.body == packetOriginal.body else {
                 print("original: \(packetOriginal.body.bytes)")
@@ -148,16 +146,8 @@ class PGPFormatTests: XCTestCase {
                 return
                 
             }
-            
-            let userID = try UserID(packet: packets[1])
-            
-            let signature = try Signature(packet: packets[2])
-            print(signature.hashedSubpacketables)
-            let fingerprint = try (signature.hashedSubpacketables[0] as? SignatureIssuerFingerprint)?.fingerprint
-            print(fingerprint?.bytes)
         } catch {
             XCTFail("Unexpected error: \(error)")
-            
         }
     }
 
@@ -172,7 +162,7 @@ class PGPFormatTests: XCTestCase {
                 let packetOriginal = packet
                 let pubKeyOriginal = try PublicKey(packet: packetOriginal)
                 
-                let fp = try pubKeyOriginal.fingerprint().hex
+                let fp = pubKeyOriginal.fingerprint().hex
                 let keyID = try pubKeyOriginal.keyID().hex
                 
                 guard fp.uppercased() == "F7A83D5CE65C42817A4AB7647A1037F5EF07891E" else {
@@ -204,7 +194,7 @@ class PGPFormatTests: XCTestCase {
             let userIDOriginal = try UserID(packet: packetOriginal)
             
             let packetSerialized = try userIDOriginal.toPacket()
-            let userIDDeserialized = try UserID(packet: packetSerialized)
+            let _ = try UserID(packet: packetSerialized)
             
             guard packetSerialized.body == packetOriginal.body else {
                 print("original: \(packetOriginal.body.bytes)")
@@ -231,7 +221,7 @@ class PGPFormatTests: XCTestCase {
                 let sigOriginal = try Signature(packet: packetOriginal)
                 
                 let packetSerialized = try sigOriginal.toPacket()
-                let sigDeserialized = try Signature(packet: packetSerialized)
+                let _ = try Signature(packet: packetSerialized)
                 
                 guard packetSerialized.body == packetOriginal.body else {
                     print("original: \(packetOriginal.body.bytes)")
@@ -257,7 +247,7 @@ class PGPFormatTests: XCTestCase {
             let sigOriginal = try Signature(packet: packetOriginal)
             
             let packetSerialized = try sigOriginal.toPacket()
-            let sigDeserialized = try Signature(packet: packetSerialized)
+            let _ = try Signature(packet: packetSerialized)
             
             guard packetSerialized.body == packetOriginal.body else {
                 print("original: \(packetOriginal.body.bytes)")
@@ -311,7 +301,7 @@ class PGPFormatTests: XCTestCase {
             }
             
             let outMsg = try AsciiArmorMessage(message: signedPubKey.toMessage(), blockType: ArmorMessageBlock.publicKey).toString()
-            let inPackets = try [Packet](data: AsciiArmorMessage(string: outMsg).packetData)
+            let _ = try [Packet](data: AsciiArmorMessage(string: outMsg).packetData)
             
             print(outMsg)
             
@@ -375,7 +365,7 @@ class PGPFormatTests: XCTestCase {
             print("Kind: \(signature.kind)")
             print("Hashed Sbpkt Type: \(signature.hashedSubpacketables[0].type)")
             
-            var binaryData = binaryDocument.data(using: String.Encoding.utf8)!
+            let binaryData = binaryDocument.data(using: String.Encoding.utf8)!
             
             var signedBinary = SignedBinaryDocument(binary: binaryData, publicKeyAlgorithm: signature.publicKeyAlgorithm, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             

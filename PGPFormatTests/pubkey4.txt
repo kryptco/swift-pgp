@@ -1,9 +1,0 @@
------BEGIN PGP PUBLIC KEY BLOCK-----
-Comment: Created by swift-pgp
-
-mDMEWR/+LBYJKwYBBAHaRw8BAQdAiue7CdTkwV9Y4IGc0YyknwAlj/vtP4Kjrgw/
-F4nxsDG0G2FsZXggZ3Jpbm1hbiA8bWVAYWxleGdyLmluPohfBBMWCgAJBQJZH/4s
-AhsCAAoJEOmnHqgxWly7mQAB/if3BAU2UMyuI6F7f7nPyj44S3WnpPV8Ae4QLT2j
-oVXZ3qkdyA43+dTUXyJ81tkrD4zAGw7p+JZLjxgec+AiZwM=
-=z7A0
------END PGP PUBLIC KEY BLOCK-----

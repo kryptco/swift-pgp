@@ -17,6 +17,9 @@ class PGPFormatTests: XCTestCase {
 
     var binarySignature:String!
     var binaryDocument:String!
+    
+    var attachedSignature:String!
+
 
     override func setUp() {
         super.setUp()
@@ -28,6 +31,8 @@ class PGPFormatTests: XCTestCase {
 
         binarySignature = try! String(contentsOfFile: bundle.path(forResource: "signature", ofType: "txt")!)
         binaryDocument = try! String(contentsOfFile: bundle.path(forResource: "signed_raw", ofType: "txt")!)
+
+        attachedSignature = try! String(contentsOfFile: bundle.path(forResource: "attached_signature", ofType: "txt")!)
 
     }
     
@@ -255,6 +260,110 @@ class PGPFormatTests: XCTestCase {
                 XCTFail("packets differ after serialization deserialization")
                 return
                 
+            }
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
+
+    
+    // OnePassSignature
+    func testOnePassSignatureSerializeDeserialize() {
+        do  {
+            let sigMsg = try AsciiArmorMessage(string: attachedSignature)
+            let packets = try Message(data: sigMsg.packetData).packets
+
+            let packetOriginal = packets[0]
+            let sigOriginal = try OnePassSignature(packet: packetOriginal)
+            
+            let packetSerialized = try sigOriginal.toPacket()
+            let _ = try OnePassSignature(packet: packetSerialized)
+            
+            guard packetSerialized.body == packetOriginal.body else {
+                print("original: \(packetOriginal.body.bytes)")
+                print("serialized: \(packetSerialized.body.bytes)")
+                XCTFail("packets differ after serialization deserialization")
+                return
+            }
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func testLiteralDataPacket() {
+        do  {
+            let sigMsg = try AsciiArmorMessage(string: attachedSignature)
+            let packets = try Message(data: sigMsg.packetData).packets
+            
+            let packetOriginal = packets[1]
+            let literalData = try LiteralData(packet: packetOriginal)
+            
+            // test contents
+            guard let utf8Contents = String(data: literalData.contents, encoding: String.Encoding.utf8) else {
+                XCTFail("literal data invalid utf8")
+                return
+            }
+            
+            // test contents match
+            XCTAssert(utf8Contents == "AAAA")
+            
+            // test serialize matches
+            let packetSerialized = try literalData.toPacket()
+            let _ = try LiteralData(packet: packetSerialized)
+            
+            guard packetSerialized.body == packetOriginal.body else {
+                print("original: \(packetOriginal.body.bytes)")
+                print("serialized: \(packetSerialized.body.bytes)")
+                XCTFail("packets differ after serialization deserialization")
+                return
+            }
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+
+    
+    func testAttachedSignatureHashLeftTwoBytes() {
+        do  {
+            let sigMsg = try AsciiArmorMessage(string: attachedSignature)
+            let packets = try Message(data: sigMsg.packetData).packets
+
+            let onePass = try OnePassSignature(packet: packets[0])
+            let literalData = try LiteralData(packet: packets[1])
+            let signature = try Signature(packet: packets[2])
+            
+            var signedAttachedBinary = SignedAttachedBinaryDocument(binaryData: literalData.contents, binaryDate: literalData.date, keyID: onePass.keyID, publicKeyAlgorithm: signature.publicKeyAlgorithm, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
+            
+            let dataToHash = try signedAttachedBinary.dataToHash()
+
+            var hash:Data
+            
+            switch signature.hashAlgorithm {
+            case .sha1:
+                hash = dataToHash.SHA1
+            case .sha224:
+                hash = dataToHash.SHA224
+            case .sha256:
+                hash = dataToHash.SHA256
+            case .sha384:
+                hash = dataToHash.SHA384
+            case .sha512:
+                hash = dataToHash.SHA512
+            }
+
+            
+            let leftTwoBytes = hash.bytes[0 ..< 2]
+            
+            try signedAttachedBinary.set(hash: hash, signedHash: signature.signature)
+            
+            guard signedAttachedBinary.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(signedAttachedBinary.signature.leftTwoHashBytes)\nExpected: \(signature.leftTwoHashBytes)")
+                return
             }
             
         } catch {

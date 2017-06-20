@@ -15,7 +15,8 @@ import Foundation
 public enum ArmorMessageBlock:String {
     case publicKey = "PUBLIC KEY BLOCK"
     case signature = "SIGNATURE"
-    
+    case message = "MESSAGE"
+
     var begin:String {
         return "\(ArmorMessageBlock.begin)\(self.rawValue)\(ArmorMessageBlock.dashes)"
     }

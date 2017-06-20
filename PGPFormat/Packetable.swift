@@ -64,10 +64,31 @@ public extension Array where Element == Packetable {
                 return try UserID(packet: $0)
             case .signature:
                 return try Signature(packet: $0)
+            case .onePassSignature:
+                return try OnePassSignature(packet: $0)
+            case .literalData:
+                return try LiteralData(packet: $0)
             }
         }
     }
 }
+
+/**
+ for testing purposes
+public struct BasePacket:Packetable {
+    public var tag:PacketTag
+    var bodyData:Data
+    
+    public init(packet:Packet) throws {
+        tag = packet.header.tag
+        bodyData = packet.body
+    }
+    
+    public func toData() throws -> Data {
+        return bodyData
+    }
+}
+*/
 
 
 

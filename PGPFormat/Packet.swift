@@ -148,15 +148,15 @@ public struct PacketHeader {
 
         let newFormat = ((firstOctet & 0b01000000) >> 6) == 1
         
-        if newFormat {            
-            let packetLength = try PacketLength(newFormat: [UInt8](bytes.suffix(from: 1)))
+        if newFormat {
             let packetTag = try PacketTag(tag: firstOctet & 0b00111111)
+            let packetLength = try PacketLength(newFormat: [UInt8](bytes.suffix(from: 1)))
             self.init(tag: packetTag, packetLength: packetLength)
             
         } else {
+            let packetTag = try PacketTag(tag: (firstOctet & 0b00111100)>>2)
             let lengthType = firstOctet & 0b00000011
             let packetLength = try PacketLength(oldFormat: [UInt8](bytes.suffix(from: 1)), type: lengthType)
-            let packetTag = try PacketTag(tag: (firstOctet & 0b00111100)>>2)
             
             self.init(tag: packetTag, packetLength: packetLength)
         }
@@ -205,10 +205,12 @@ public struct PacketHeader {
     //NOTE: not all currently supported
  */
 public enum PacketTag:UInt8 {
-    case signature      = 2
-    case publicKey      = 6
-    case userID         = 13
-    case publicSubkey   = 14
+    case signature          = 2
+    case onePassSignature   = 4
+    case publicKey          = 6
+    case literalData        = 11
+    case userID             = 13
+    case publicSubkey       = 14
     
     init(tag:UInt8) throws {
         guard let packetTag = PacketTag(rawValue: tag) else {

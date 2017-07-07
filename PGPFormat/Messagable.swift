@@ -11,7 +11,7 @@ import Foundation
 /**
     Represents something that can be made into a PGP Message.
 */
-protocol Messagable {
+public protocol Messagable {
     func toPackets() throws -> [Packet]
 }
 

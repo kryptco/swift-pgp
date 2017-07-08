@@ -155,55 +155,35 @@ public struct Signature:Packetable {
         
         ptr += 2 // jump two-octets for left 16 bits of sig
 
+        guard bytes.count > ptr else {
+            throw DataError.tooShort(bytes.count)
+        }
+
         // signature MPI
         switch publicKeyAlgorithm {
         case .rsaEncryptOrSign, .rsaSignOnly:
-            
-            guard bytes.count >= ptr + 2 else {
-                throw DataError.tooShort(bytes.count)
-            }
-            
-            let signatureLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
-            ptr += 2
-            
-            guard bytes.count >= ptr + signatureLength else {
-                throw DataError.tooShort(bytes.count)
-            }
-            
-            signature = Data(bytes: bytes[ptr ..< (ptr + signatureLength)])
+            let signatureMPInt = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            signature = signatureMPInt.data
             
         case .ed25519:
             
             // first point
-            guard bytes.count >= ptr + 2 else {
-                throw DataError.tooShort(bytes.count)
-            }
-            
-            let firstPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
-            ptr += 2
-            
-            guard bytes.count >= ptr + firstPointLength else {
-                throw DataError.tooShort(bytes.count)
-            }
-            
-            let firstPoint = Data(bytes: bytes[ptr ..< (ptr + firstPointLength)])
-            
-            ptr += firstPointLength
+            let firstPointMPInt = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+
+            ptr += firstPointMPInt.byteLength
             
             // second point
-            guard bytes.count >= ptr + 2 else {
+            guard bytes.count > ptr else {
                 throw DataError.tooShort(bytes.count)
             }
             
-            let secondPointLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
-            ptr += 2
+            let secondPointMPint = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
             
-            guard bytes.count >= ptr + secondPointLength else {
-                throw DataError.tooShort(bytes.count)
-            }
-            
-            let secondPoint = Data(bytes: bytes[ptr ..< (ptr + secondPointLength)])
-            
+            // pad points with 0s if needed
+            let firstPoint = firstPointMPInt.data.padPrependedZeros(upto: 32)
+            let secondPoint = secondPointMPint.data.padPrependedZeros(upto: 32)
+
+            // concat points for raw signature data
             var sigData = Data()
             sigData.append(firstPoint)
             sigData.append(secondPoint)
@@ -323,22 +303,24 @@ public struct Signature:Packetable {
         // signature MPI
         switch publicKeyAlgorithm {
         case .rsaEncryptOrSign, .rsaSignOnly:
-            data.append(contentsOf: UInt32(signature.numBits).twoByteBigEndianBytes())
-            data.append(signature)
+            let signatureMPInt = MPInt(integerData: signature)
+            
+            data.append(contentsOf: signatureMPInt.lengthBytes)
+            data.append(signatureMPInt.data)
             
         case .ed25519:
             guard signature.count == 64 else {
                 throw SerializingError.invalidSignatureLength(signature.count)
             }
             
-            let firstPoint = Data(bytes: signature.bytes[0...31])
-            let secondPoint = Data(bytes: signature.bytes[32...63])
+            let firstPointMPInt = MPInt(integerData: Data(bytes: signature.bytes[0...31]))
+            let secondPointMPInt = MPInt(integerData: Data(bytes: signature.bytes[32...63]))
             
-            data.append(contentsOf: UInt32(firstPoint.numBits).twoByteBigEndianBytes())
-            data.append(firstPoint)
+            data.append(contentsOf: firstPointMPInt.lengthBytes)
+            data.append(firstPointMPInt.data)
             
-            data.append(contentsOf: UInt32(secondPoint.numBits).twoByteBigEndianBytes())
-            data.append(secondPoint)
+            data.append(contentsOf: secondPointMPInt.lengthBytes)
+            data.append(secondPointMPInt.data)
             
         case .rsaEncryptOnly:
             throw PublicKeyAlgorithm.UnsupportedType(type: publicKeyAlgorithm.rawValue)

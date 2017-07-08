@@ -12,6 +12,7 @@ import Foundation
     Represents a public key data structure
  */
 public protocol PublicKeyData {
+    init(mpintData:Data) throws
     func toData() -> Data
 }
 
@@ -19,24 +20,39 @@ public protocol PublicKeyData {
     The RSA public key data structure
  */
 public struct RSAPublicKey:PublicKeyData{
-    public let modulus:Data
-    public let exponent:Data
+    public let modulus:MPInt
+    public let exponent:MPInt
     
     public init(modulus:Data, exponent:Data) {
-        self.modulus = modulus
-        self.exponent = exponent
+        self.modulus = MPInt(integerData: modulus)
+        self.exponent = MPInt(integerData: exponent)
+    }
+    
+    public init(mpintData: Data) throws {
+        let bytes = mpintData.bytes
+        
+        var start = 0
+        
+        self.modulus = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
+        start += modulus.byteLength
+        
+        guard bytes.count >= start else {
+            throw DataError.tooShort(bytes.count)
+        }
+        
+        self.exponent = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
     }
     
     public func toData() -> Data {
         var data = Data()
         
         // modulus:  MPI two-octet scalar length then modulus
-        data.append(contentsOf: UInt32(modulus.numBits).twoByteBigEndianBytes())
-        data.append(modulus)
+        data.append(contentsOf: modulus.lengthBytes)
+        data.append(modulus.data)
         
         // exponent:  MPI two-octet scalar length then exponent
-        data.append(contentsOf: UInt32(exponent.numBits).twoByteBigEndianBytes())
-        data.append(exponent)
+        data.append(contentsOf: exponent.lengthBytes)
+        data.append(exponent.data)
         
         return data
     }
@@ -46,11 +62,19 @@ public struct RSAPublicKey:PublicKeyData{
     The Ed25519 public key data structure
     https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00
  */
+
 public struct Ed25519PublicKey:PublicKeyData {
-    public var rawData:Data
+    
+    var mpint:MPInt
+    
+    enum ParsingError:Error {
+        case missingECCPrefixByte
+        case badECCCurveOIDLength(UInt8)
+        case unsupportedECCCurveOID(Data)
+    }
     
     /**
-        Ed25519 constants: 
+        Ed25519 constants:
             - prefix byte
             - curve OID
      */
@@ -60,17 +84,57 @@ public struct Ed25519PublicKey:PublicKeyData {
     }
     
     public init(rawData:Data) {
-        self.rawData = rawData
+        self.mpint = MPInt(integerData: Data(bytes: [Constants.prefixByte] + rawData.bytes))
     }
+    
+    public init(mpintData:Data) throws {
+        
+        let bytes = mpintData.bytes
+        
+        var start = 0
+        guard Int(bytes[start]) == Constants.curveOID.count else {
+            throw ParsingError.badECCCurveOIDLength(bytes[start])
+        }
+        
+        start += 1
+        
+        let curveOID = [UInt8](bytes[start ..< start + 9])
+        guard curveOID == Constants.curveOID else {
+            throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
+        }
+        
+        start += 9
+        
+        guard bytes.count >= start else {
+            throw DataError.tooShort(bytes.count)
+        }
+        
+        let mpint = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
+        
+        guard mpint.data.bytes.first == Constants.prefixByte else {
+            throw ParsingError.missingECCPrefixByte
+        }
+        
+        self.mpint = mpint
+    }
+    
+    public func keyData() throws -> Data {        
+        // remove the first prefix byte
+        guard mpint.data.count > 1 else {
+            throw ParsingError.missingECCPrefixByte
+        }
+        
+        let keyData = Data(bytes: mpint.data.bytes[1 ..< mpint.data.count])
+        return keyData.padPrependedZeros(upto: 32)
+    }
+    
     
     public func toData() -> Data {
         var data = Data()
         data.append(contentsOf: [UInt8(Constants.curveOID.count)] + Constants.curveOID)
         
-        let prefixedRawData = Data(bytes: [Constants.prefixByte] + rawData.bytes)
-        
-        data.append(contentsOf: UInt32(prefixedRawData.numBits).twoByteBigEndianBytes())
-        data.append(prefixedRawData)
+        data.append(contentsOf: mpint.lengthBytes)
+        data.append(mpint.data)
         
         return data
     }

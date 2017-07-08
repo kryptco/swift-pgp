@@ -57,9 +57,6 @@ public struct PublicKey:Packetable {
         case tooShort(Int)
         case unsupportedVersion(UInt8)
         case invalidFinerprintLength(Int)
-        case badECCCurveOIDLength(UInt8)
-        case unsupportedECCCurveOID(Data)
-        case missingECCPrefixByte
     }
     
     public init(create algorithm:PublicKeyAlgorithm, publicKeyData:PublicKeyData, date:Date = Date()) {
@@ -85,7 +82,7 @@ public struct PublicKey:Packetable {
         // parse the body
         let data = packet.body
         
-        guard data.count > 5 else {
+        guard data.count > 6 else {
             throw DataError.tooShort(data.count)
         }
         
@@ -103,81 +100,15 @@ public struct PublicKey:Packetable {
         // algo (5)
         algorithm = try PublicKeyAlgorithm(type: bytes[5])
         
-        var  start = 6
-
+        // parse the key data
+        let keyData = Data(bytes: bytes[6 ..< bytes.count])
+        
         switch algorithm {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
-            // modulus n (MPI: 2 + len(n))
-            guard data.count >= start + 2 else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            let modulusLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8
-            
-            start += 2
-            guard data.count >= start + modulusLength else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            let modulus = Data(bytes: bytes[start ..< start + modulusLength])
-            
-            
-            // public exponent e (MPI: 2 + len(e))
-            start += modulusLength
-            guard data.count >= start + 2 else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            let exponentLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< (start+2)])) + 7)/8
-            
-            start += 2
-            guard data.count >= start + exponentLength else {
-                throw DataError.tooShort(data.count)
-            }
-
-            let exponent = Data(bytes: bytes[start ..< start + exponentLength])
-            
-            self.publicKeyData = RSAPublicKey(modulus: modulus, exponent: exponent)
+            self.publicKeyData = try RSAPublicKey(mpintData: keyData)
             
         case .ed25519:
-            guard data.count >= start + 10 else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            guard Int(bytes[start]) == Ed25519PublicKey.Constants.curveOID.count else {
-                throw ParsingError.badECCCurveOIDLength(bytes[start])
-            }
-            
-            start += 1
-            
-            let curveOID = [UInt8](bytes[start ..< start + 9])
-            guard curveOID == Ed25519PublicKey.Constants.curveOID else {
-                throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
-            }
-            
-            start += 9
-            
-            guard data.count >= start + 2 else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            let rawLength = Int(UInt32(bigEndianBytes: [UInt8](bytes[start ..< start + 2])) + 7)/8 - 1
-            
-            start += 2
-            
-            guard bytes[start] == Ed25519PublicKey.Constants.prefixByte else {
-                throw ParsingError.missingECCPrefixByte
-
-            }
-            // skip the prefix byte
-            start += 1
-            
-            guard data.count >= start + rawLength else {
-                throw DataError.tooShort(data.count)
-            }
-            
-            let rawData = Data(bytes: bytes[start ..< start + rawLength])
-            self.publicKeyData = Ed25519PublicKey(rawData: rawData)
+            self.publicKeyData = try Ed25519PublicKey(mpintData: keyData)
         }
     }
     

@@ -19,6 +19,60 @@ public enum DataError : Error {
     case range(Int,Int)
 }
 
+public struct MPInt {
+    
+    public var data:Data
+    
+    /**
+        Initialize an MPInt with integer bytes
+        remove any leading zero bytes
+     */
+    public init(integerData:Data) {
+        let bytes = integerData.bytes
+        
+        var startingIndex = 0
+        for byte in bytes {
+            guard Int(byte) == 0 else {
+                break
+            }
+            
+            startingIndex += 1
+        }
+        
+        self.data = Data(bytes: bytes[startingIndex ..< bytes.count])
+    }
+    
+    /**
+        Initialize an MPInt with MPInt bytes
+     */
+    public init(mpintData:Data) throws {
+        guard mpintData.count >= 2 else {
+            throw DataError.tooShort(mpintData.count)
+        }
+        
+        let bytes = mpintData.bytes
+        
+        var ptr = 0
+        
+        let length = Int(UInt32(bigEndianBytes: [UInt8](bytes[ptr ... ptr + 1])) + 7)/8
+        ptr += 2
+        
+        guard bytes.count >= ptr + length else {
+            throw DataError.tooShort(bytes.count)
+        }
+        
+        data = Data(bytes: bytes[ptr ..< (ptr + length)])
+    }
+    
+    public var byteLength:Int {
+        return 2 + Int(UInt32(bigEndianBytes: lengthBytes) + 7)/8
+    }
+    
+    public var lengthBytes:[UInt8] {
+        return data.numBits.twoByteBigEndianBytes()
+    }
+    
+}
 public extension Int {
     var numBits:Int {
         guard self > 0 else {
@@ -80,11 +134,21 @@ public extension Data {
         
         let dataBytes = self.bytes
         
-        let firstByteBits = Int(dataBytes[0]).numBits
-        let remaindingBytesBits = (count - 1)*8
+        var byteIndex = 0
+        for byte in dataBytes {
+            guard Int(byte) == 0 else {
+                break
+            }
+            
+            byteIndex += 1
+        }
+        
+        let firstByteBits = Int(dataBytes[byteIndex]).numBits
+        let remaindingBytesBits = (count - byteIndex - 1)*8
         
         return firstByteBits + remaindingBytesBits
     }
+
     
     var crc24Checksum:Data {
         var dataBytes = self.bytes
@@ -95,6 +159,27 @@ public extension Data {
         }
         
         return Data(bytes: UInt32(checksum).threeByteBigEndianBytes())
+    }
+    
+    
+    /**
+        Create a new byte array with prepended zeros
+        so that the final length is equal to `length`.
+ 
+        If the length is greater than `length`, return itself.
+     */
+    func padPrependedZeros(upto length:Int) -> Data {
+        guard self.count < length else {
+            return Data(self)
+        }
+        
+        let zeros = Data(repeating: 0, count: length - self.count)
+        
+        var padded = Data()
+        padded.append(zeros)
+        padded.append(self)
+        
+        return padded
     }
 
     
@@ -222,6 +307,12 @@ public extension UInt32 {
         return [UInt8((self >> 16) % 256), UInt8((self >> 8) % 256), UInt8((self) % 256)]
     }
     
+    func twoByteBigEndianBytes() -> [UInt8] {
+        return [UInt8((self >> 8) % 256), UInt8((self) % 256)]
+    }
+}
+
+public extension Int {
     func twoByteBigEndianBytes() -> [UInt8] {
         return [UInt8((self >> 8) % 256), UInt8((self) % 256)]
     }

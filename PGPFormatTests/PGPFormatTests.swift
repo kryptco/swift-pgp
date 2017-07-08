@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import PGPFormat
+import CommonCrypto
 
 class PGPFormatTests: XCTestCase {
     
@@ -597,4 +598,86 @@ class PGPFormatTests: XCTestCase {
         }
     }
     
+    /**
+        MPInt Tests
+     */
+    func testMPInt() {
+        
+        var data = Data(bytes: [0x0E, 0xAD, 0xBE, 0xEF])
+        var mpint = MPInt(integerData: data)
+        
+        XCTAssert(mpint.data.bytes == data.bytes, "mismatch bytes: \(mpint.data.bytes)")
+        XCTAssert(mpint.byteLength == 2 + data.count, "incorrect byte length: \(mpint.byteLength)")
+        XCTAssert(mpint.lengthBytes == 28.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+
+        
+        data = Data(bytes: [0xDE, 0xAD, 0xBE, 0xEF])
+        mpint = MPInt(integerData: data)
+        
+        XCTAssert(mpint.data.bytes == data.bytes, "mismatch bytes: \(mpint.data.bytes)")
+        XCTAssert(mpint.byteLength == 2 + data.count, "incorrect byte length: \(mpint.byteLength)")
+        XCTAssert(mpint.lengthBytes == 32.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+
+        
+        // test leading zeros
+        data = Data(bytes: [0x00, 0xAD, 0xBE, 0xEF])
+        mpint = MPInt(integerData: data)
+        
+        XCTAssert(mpint.data.bytes == [UInt8](data.bytes[1 ..< data.count]), "mismatch bytes: \(mpint.data.bytes)")
+        XCTAssert(mpint.byteLength == 2 + 3 , "incorrect byte length: \(mpint.byteLength)")
+        XCTAssert(mpint.lengthBytes == 24.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+
+        
+        data = Data(bytes: [0x00, 0x00, 0x2E, 0xEF])
+        mpint = MPInt(integerData: data)
+        
+        XCTAssert(mpint.data.bytes == [UInt8](data.bytes[2 ..< data.count]), "mismatch bytes: \(mpint.data.bytes)")
+        XCTAssert(mpint.byteLength == 2 + 2, "incorrect byte length: \(mpint.byteLength)")
+        XCTAssert(mpint.lengthBytes == 14.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+        
+        // random values
+        for _ in 0 ..< 256 {
+            data = Data.random(size: 128)
+            mpint = MPInt(integerData: data)
+            
+            // strip any leading 0s
+            var startingIndex = 0
+            for byte in data.bytes {
+                guard Int(byte) == 0 else {
+                    break
+                }
+                
+                startingIndex += 1
+            }
+
+            XCTAssert(mpint.data.bytes == [UInt8](data.bytes[startingIndex ..< data.count]), "mismatch bytes: \(mpint.data.bytes)")
+            XCTAssert(mpint.byteLength == 2 + (data.count - startingIndex), "incorrect byte length: \(mpint.byteLength)")
+            XCTAssert(mpint.lengthBytes == data.numBits.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+        }
+    }
+    
 }
+
+extension Data {
+    
+    static func random(size:Int) -> Data {
+        var result = [UInt8](repeating: 0, count: size)
+        let _ = SecRandomCopyBytes(kSecRandomDefault, size, &result)
+        return Data(bytes: result)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

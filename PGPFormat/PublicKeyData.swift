@@ -65,7 +65,7 @@ public struct RSAPublicKey:PublicKeyData{
 
 public struct Ed25519PublicKey:PublicKeyData {
     
-    var mpint:MPInt
+    var rawData:Data
     
     enum ParsingError:Error {
         case missingECCPrefixByte
@@ -84,13 +84,17 @@ public struct Ed25519PublicKey:PublicKeyData {
     }
     
     public init(rawData:Data) {
-        self.mpint = MPInt(integerData: Data(bytes: [Constants.prefixByte] + rawData.bytes))
+        self.rawData = rawData
     }
     
     public init(mpintData:Data) throws {
         
         let bytes = mpintData.bytes
         
+        guard bytes.count >= 1 + Constants.curveOID.count else {
+            throw DataError.tooShort(bytes.count)
+        }
+
         var start = 0
         guard Int(bytes[start]) == Constants.curveOID.count else {
             throw ParsingError.badECCCurveOIDLength(bytes[start])
@@ -98,40 +102,36 @@ public struct Ed25519PublicKey:PublicKeyData {
         
         start += 1
         
-        let curveOID = [UInt8](bytes[start ..< start + 9])
+        let curveOID = [UInt8](bytes[start ..< start + Constants.curveOID.count])
         guard curveOID == Constants.curveOID else {
             throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
         }
         
-        start += 9
+        start += Constants.curveOID.count
         
-        guard bytes.count >= start else {
+        guard bytes.count > start else {
             throw DataError.tooShort(bytes.count)
         }
         
-        let mpint = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
+        let mpintBytes = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count])).data.bytes
         
-        guard mpint.data.bytes.first == Constants.prefixByte else {
+        guard mpintBytes.first == Constants.prefixByte else {
             throw ParsingError.missingECCPrefixByte
         }
         
-        self.mpint = mpint
-    }
-    
-    public func keyData() throws -> Data {        
-        // remove the first prefix byte
-        guard mpint.data.count > 1 else {
-            throw ParsingError.missingECCPrefixByte
+        guard mpintBytes.count > 1 else {
+            throw DataError.tooShort(mpintBytes.count)
         }
         
-        let keyData = Data(bytes: mpint.data.bytes[1 ..< mpint.data.count])
-        return keyData.padPrependedZeros(upto: 32)
+        self.rawData = Data(bytes: mpintBytes[1 ..< mpintBytes.count])
     }
     
     
     public func toData() -> Data {
         var data = Data()
         data.append(contentsOf: [UInt8(Constants.curveOID.count)] + Constants.curveOID)
+        
+        let mpint = MPInt(integerData: Data(bytes: [Constants.prefixByte] + rawData.bytes))
         
         data.append(contentsOf: mpint.lengthBytes)
         data.append(mpint.data)

@@ -143,10 +143,14 @@ public extension Data {
             byteIndex += 1
         }
         
-        let firstByteBits = Int(dataBytes[byteIndex]).numBits
-        let remaindingBytesBits = (count - byteIndex - 1)*8
+        guard byteIndex < count else {
+            return 0
+        }
         
-        return firstByteBits + remaindingBytesBits
+        let firstByteBits = Int(dataBytes[byteIndex]).numBits
+        let remainingBytesBits = (count - byteIndex - 1)*8
+        
+        return firstByteBits + remainingBytesBits
     }
 
     

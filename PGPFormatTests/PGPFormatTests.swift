@@ -635,6 +635,15 @@ class PGPFormatTests: XCTestCase {
         XCTAssert(mpint.byteLength == 2 + 2, "incorrect byte length: \(mpint.byteLength)")
         XCTAssert(mpint.lengthBytes == 14.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
         
+        // all 0's
+        data = Data(bytes: [0x00, 0x00, 0x00, 0x00])
+        mpint = MPInt(integerData: data)
+        
+        XCTAssert(mpint.data.bytes == [], "mismatch bytes: \(mpint.data.bytes)")
+        XCTAssert(mpint.byteLength == 2, "incorrect byte length: \(mpint.byteLength)")
+        XCTAssert(mpint.lengthBytes == 0.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
+        XCTAssert(data.numBits == 0, "numBits fails on all )s: \(mpint.data.bytes)")
+
         // random values
         for _ in 0 ..< 256 {
             data = Data.random(size: 128)

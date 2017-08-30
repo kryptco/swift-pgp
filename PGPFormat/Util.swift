@@ -73,7 +73,7 @@ public struct MPInt {
     }
     
 }
-public extension Int {
+extension Int {
     var numBits:Int {
         guard self > 0 else {
             return 0
@@ -252,11 +252,9 @@ extension Data {
             [UInt8](UnsafeBufferPointer(start: $0, count: self.count))
         }
     }
-    
-    
 }
 
-public extension NSMutableData {
+extension NSMutableData {
     func byteArray() -> [String] {
         var array:[String] = []
         
@@ -284,7 +282,7 @@ extension String {
     }
 }
 
-public extension Data {
+extension Data {
     func bigEndianByteSize() -> [UInt8] {
         return stride(from: 24, through: 0, by: -8).map {
             UInt8(truncatingBitPattern: UInt32(self.count).littleEndian >> UInt32($0))
@@ -292,7 +290,7 @@ public extension Data {
     }
 }
 
-public extension UInt32 {
+extension UInt32 {
     init(bigEndianBytes: [UInt8]) {
         let count = UInt32(bigEndianBytes.count)
         
@@ -316,7 +314,7 @@ public extension UInt32 {
     }
 }
 
-public extension Int {
+extension Int {
     func twoByteBigEndianBytes() -> [UInt8] {
         return [UInt8((self >> 8) % 256), UInt8((self) % 256)]
     }
@@ -324,7 +322,7 @@ public extension Int {
 
 
 //MARK: Encoding/Decoding lengths as octets
-public extension Int {
+extension Int {
     func encodedOctets() -> [CUnsignedChar] {
         // Short form
         if self < 128 {

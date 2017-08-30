@@ -125,7 +125,7 @@ extension Data {
 }
 
 
-public extension Data {
+extension Data {
     
     var numBits:Int {
         guard count > 0 else {
@@ -270,7 +270,7 @@ public extension NSMutableData {
     }
 }
 
-public extension String {
+extension String {
     func fromBase64() throws -> Data {
         var urlDecoded = self
         urlDecoded = urlDecoded.replacingOccurrences(of: "_", with: "/")

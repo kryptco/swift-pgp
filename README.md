@@ -28,6 +28,37 @@ The next phase of swift-pgp is to support formatting PGP encrypted messages. Thi
 - [ ] Symmetric-Key Encrypted Session Keys
 - [ ] Symmetrically Encrypted Data
  
+# Installing
+1. `git submodule init; git submodule add git@github.com:kryptco/swift-pgp
+2. Drag PGPFormat.xcodeproj/ to your project (don't check copy files, they're already there)
+3. Add `CommonCrypto` to your project:
+
+Go to Build Phases and add this `run script` phase:
+
+```bash
+modulesDirectory=$DERIVED_FILES_DIR/modules
+modulesMap=$modulesDirectory/module.modulemap
+modulesMapTemp=$modulesDirectory/module.modulemap.tmp
+
+mkdir -p "$modulesDirectory"
+
+cat > "$modulesMapTemp" << MAP
+module CommonCrypto [system] {
+    header "$SDKROOT/usr/include/CommonCrypto/CommonCrypto.h"
+    export *
+}
+MAP
+
+diff "$modulesMapTemp" "$modulesMap" >/dev/null 2>/dev/null
+if [[ $? != 0 ]] ; then
+mv "$modulesMapTemp" "$modulesMap"
+else
+rm "$modulesMapTemp"
+fi
+```
+<img width="959" alt="screen shot 2017-08-31 at 11 55 25 am" src="https://user-images.githubusercontent.com/356333/29932834-722f707e-8e43-11e7-848e-49b9eb3cc8e6.png">
+
+
 # How to use swift-pgp
 Create signatures with swift-pgp by utilizing the `Signable` interface. The `Signable` interface is what makes the swift-pgp library public-key-cryptography-implementation-agnostic.
 

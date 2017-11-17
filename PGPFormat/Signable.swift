@@ -24,7 +24,7 @@ public extension Signable {
         return dataToHash
     }
     
-    public mutating func set(hash:Data, signedHash:Data) throws {
+    public mutating func set(hash:Data, signedHash:[Data]) throws {
         try signature.set(hash: hash, signedHash: signedHash)
     }
     

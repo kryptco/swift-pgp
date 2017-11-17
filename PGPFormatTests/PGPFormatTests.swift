@@ -15,6 +15,7 @@ class PGPFormatTests: XCTestCase {
     var pubkey1:String!
     var pubkey2:String!
     var pubkeyEd25519:String!
+    var pubkeyNISTP256:String!
 
     var binarySignature:String!
     var binaryDocument:String!
@@ -29,6 +30,7 @@ class PGPFormatTests: XCTestCase {
         pubkey1 = try! String(contentsOfFile: bundle.path(forResource: "pubkey1", ofType: "txt")!)
         pubkey2 = try! String(contentsOfFile: bundle.path(forResource: "pubkey2", ofType: "txt")!)
         pubkeyEd25519 = try! String(contentsOfFile: bundle.path(forResource: "pubkey3", ofType: "txt")!)
+        pubkeyNISTP256 = try! String(contentsOfFile: bundle.path(forResource: "pubkey4", ofType: "txt")!)
 
         binarySignature = try! String(contentsOfFile: bundle.path(forResource: "signature", ofType: "txt")!)
         binaryDocument = try! String(contentsOfFile: bundle.path(forResource: "signed_raw", ofType: "txt")!)
@@ -137,6 +139,29 @@ class PGPFormatTests: XCTestCase {
     func testPublicKeyEd25519SerializeDeserializePacket() {
         do  {
             let pubMsg = try AsciiArmorMessage(string: pubkeyEd25519)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            let packetOriginal = packets[0]
+            let pubKeyOriginal = try PublicKey(packet: packetOriginal)
+            
+            let packetSerialized = try pubKeyOriginal.toPacket()
+            let _ = try PublicKey(packet: packetSerialized)
+            
+            guard packetSerialized.body == packetOriginal.body else {
+                print("original: \(packetOriginal.body.bytes)")
+                print("serialized: \(packetSerialized.body.bytes)")
+                XCTFail("packets differ after serialization deserialization")
+                return
+                
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    
+    func testPublicKeyNISTP256SerializeDeserializePacket() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkeyNISTP256)
             let packets = try [Packet](data: pubMsg.packetData)
             
             let packetOriginal = packets[0]
@@ -357,9 +382,6 @@ class PGPFormatTests: XCTestCase {
                 hash = dataToHash.SHA512
             }
 
-            
-            let leftTwoBytes = hash.bytes[0 ..< 2]
-            
             try signedAttachedBinary.set(hash: hash, signedHash: signature.signature)
             
             guard signedAttachedBinary.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
@@ -434,6 +456,47 @@ class PGPFormatTests: XCTestCase {
             
             var signedPubKey = try SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             
+            let dataToHash = try signedPubKey.dataToHash()
+            
+            var hash:Data
+            
+            switch signature.hashAlgorithm {
+            case .sha1:
+                hash = dataToHash.SHA1
+            case .sha224:
+                hash = dataToHash.SHA224
+            case .sha256:
+                hash = dataToHash.SHA256
+            case .sha384:
+                hash = dataToHash.SHA384
+            case .sha512:
+                hash = dataToHash.SHA512
+            }
+            
+            try signedPubKey.set(hash: hash, signedHash: signature.signature)
+            
+            guard signedPubKey.signature.leftTwoHashBytes == signature.leftTwoHashBytes else {
+                XCTFail("Left two hash bytes don't match: \nGot: \(signedPubKey.signature.leftTwoHashBytes)\nExpected: \(signature.leftTwoHashBytes)")
+                return
+            }
+            
+            
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+            
+        }
+    }
+    
+    func testNISTP256SignatureHashMatchesLeft16Bits() {
+        do  {
+            let pubMsg = try AsciiArmorMessage(string: pubkeyNISTP256)
+            let packets = try [Packet](data: pubMsg.packetData)
+            
+            let publicKey = try PublicKey(packet: packets[0])
+            let userID = try UserID(packet: packets[1])
+            let signature = try Signature(packet: packets[2])
+            
+            var signedPubKey = try SignedPublicKeyIdentity(publicKey: publicKey, userID: userID, hashAlgorithm: signature.hashAlgorithm, hashedSubpacketables: signature.hashedSubpacketables)
             let dataToHash = try signedPubKey.dataToHash()
             
             var hash:Data

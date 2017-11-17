@@ -18,6 +18,7 @@
 		FA2151DE1EF9A4520090F398 /* attached_signature.txt in Resources */ = {isa = PBXBuildFile; fileRef = FA2151DD1EF9A4520090F398 /* attached_signature.txt */; };
 		FA2949E11EDD180800A5C70B /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2949E01EDD180800A5C70B /* Message.swift */; };
 		FA5577EE1EE3C93000D1DA99 /* SignatureSubpacketable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5577ED1EE3C93000D1DA99 /* SignatureSubpacketable.swift */; };
+		FAAEAF5B1FBE966A0051E9F2 /* pubkey4.txt in Resources */ = {isa = PBXBuildFile; fileRef = FAAEAF5A1FBE966A0051E9F2 /* pubkey4.txt */; };
 		FACE33BD1EC9E779003EC6C0 /* PGPFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FACE33C81EC9E806003EC6C0 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C31EC9E806003EC6C0 /* Packet.swift */; };
 		FACE33C91EC9E806003EC6C0 /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE33C41EC9E806003EC6C0 /* PublicKey.swift */; };
@@ -61,6 +62,7 @@
 		FA2151DD1EF9A4520090F398 /* attached_signature.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = attached_signature.txt; sourceTree = "<group>"; };
 		FA2949E01EDD180800A5C70B /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		FA5577ED1EE3C93000D1DA99 /* SignatureSubpacketable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignatureSubpacketable.swift; sourceTree = "<group>"; };
+		FAAEAF5A1FBE966A0051E9F2 /* pubkey4.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = pubkey4.txt; sourceTree = "<group>"; };
 		FACE33B81EC9E779003EC6C0 /* PGPFormat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PGPFormat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FACE33BB1EC9E779003EC6C0 /* PGPFormat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PGPFormat.h; sourceTree = "<group>"; };
 		FACE33BC1EC9E779003EC6C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 				FAEA70611ECC197400920AAB /* pubkey1.txt */,
 				FA12EAB61ED000D7001603BF /* pubkey2.txt */,
 				FA12EAB81ED0283D001603BF /* pubkey3.txt */,
+				FAAEAF5A1FBE966A0051E9F2 /* pubkey4.txt */,
 				FA12EAC21ED1442D001603BF /* signature.txt */,
 				FA2151DD1EF9A4520090F398 /* attached_signature.txt */,
 				FA12EAC41ED14482001603BF /* signed_raw.txt */,
@@ -259,18 +262,19 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = "KryptCo, Inc.";
 				TargetAttributes = {
 					FACE33B71EC9E779003EC6C0 = {
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = W7AMYM5LPN;
-						LastSwiftMigration = 0830;
+						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
 					};
 					FAEA70551ECC192D00920AAB = {
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = W7AMYM5LPN;
+						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -310,6 +314,7 @@
 				FA12EAB91ED0283D001603BF /* pubkey3.txt in Resources */,
 				FA12EAC31ED1442D001603BF /* signature.txt in Resources */,
 				FA12EAC51ED14482001603BF /* signed_raw.txt in Resources */,
+				FAAEAF5B1FBE966A0051E9F2 /* pubkey4.txt in Resources */,
 				FA2151DE1EF9A4520090F398 /* attached_signature.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -404,7 +409,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -412,7 +419,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -458,7 +469,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -466,7 +479,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -514,7 +531,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -536,7 +554,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -548,7 +567,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormatTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -560,7 +580,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = co.krypt.PGPFormatTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

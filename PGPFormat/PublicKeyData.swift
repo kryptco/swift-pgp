@@ -59,55 +59,104 @@ public struct RSAPublicKey:PublicKeyData{
 }
 
 /**
-    The Ed25519 public key data structure
-    https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00
+    The ECC public key data structure
+        - supports Ed25519: https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00
+        - supports ECDSA (nistP256):  https://tools.ietf.org/html/rfc6637
  */
 
-public struct Ed25519PublicKey:PublicKeyData {
+public struct ECPublicKey:PublicKeyData {
     
-    var rawData:Data
+    let curve:Curve
+    let rawData:Data
     
     enum ParsingError:Error {
-        case missingECCPrefixByte
+        case invalidOrMissingECCPrefixByte
         case badECCCurveOIDLength(UInt8)
-        case unsupportedECCCurveOID(Data)
+        case unsupportedECCCurveOID([UInt8])
     }
     
-    /**
-        Ed25519 constants:
-            - prefix byte
-            - curve OID
-     */
-    public struct Constants {
-        public static let prefixByte:UInt8 = 0x40
-        public static let curveOID:[UInt8] = [0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01]
+    public enum Curve {
+        case ed25519
+        case nistP256
+        
+        static var supported:[Curve] {
+            return [.ed25519, .nistP256]
+        }
+        
+        var prefixByte:UInt8 {
+            switch self {
+            case .ed25519:
+                return 0x40
+            case .nistP256:
+                return 0x04
+            }
+        }
+        
+        var oid:[UInt8] {
+            switch self {
+            case .ed25519:
+                return [0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01]
+            case .nistP256:
+                return [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07]
+            }
+        }
+        
+        init?(oid:[UInt8]) {
+            for curve in Curve.supported {
+                if curve.oid == oid {
+                    self = curve
+                    return
+                }
+            }
+            
+            return nil
+        }
     }
-    
-    public init(rawData:Data) {
+
+    public init(curve:Curve, rawData:Data) {
+        self.curve = curve
         self.rawData = rawData
+    }
+    
+    public init(curve:Curve, prefixedRawData:Data) throws {
+        guard prefixedRawData.count >= 1 else {
+            throw DataError.tooShort(prefixedRawData.count)
+        }
+        
+        guard curve.prefixByte == prefixedRawData[0] else {
+            throw ParsingError.invalidOrMissingECCPrefixByte
+        }
+        
+        self.curve = curve
+        self.rawData = Data(prefixedRawData.suffix(from: 1))
     }
     
     public init(mpintData:Data) throws {
         
         let bytes = mpintData.bytes
         
-        guard bytes.count >= 1 + Constants.curveOID.count else {
+        guard bytes.count >= 1 else {
             throw DataError.tooShort(bytes.count)
         }
-
+        
         var start = 0
-        guard Int(bytes[start]) == Constants.curveOID.count else {
-            throw ParsingError.badECCCurveOIDLength(bytes[start])
+        let oidLength = Int(bytes[start])
+        
+        guard bytes.count >= 1 + oidLength else {
+            throw DataError.tooShort(bytes.count)
         }
         
         start += 1
         
-        let curveOID = [UInt8](bytes[start ..< start + Constants.curveOID.count])
-        guard curveOID == Constants.curveOID else {
-            throw ParsingError.unsupportedECCCurveOID(Data(bytes: curveOID))
-        }
+        let oid = [UInt8](bytes[start ..< start + oidLength])
         
-        start += Constants.curveOID.count
+        guard let curve = Curve(oid: oid) else {
+            throw ParsingError.unsupportedECCCurveOID(oid)
+        }
+
+        self.curve = curve
+    
+        start += oidLength
         
         guard bytes.count > start else {
             throw DataError.tooShort(bytes.count)
@@ -115,8 +164,8 @@ public struct Ed25519PublicKey:PublicKeyData {
         
         let mpintBytes = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count])).data.bytes
         
-        guard mpintBytes.first == Constants.prefixByte else {
-            throw ParsingError.missingECCPrefixByte
+        guard mpintBytes.first == curve.prefixByte else {
+            throw ParsingError.invalidOrMissingECCPrefixByte
         }
         
         guard mpintBytes.count > 1 else {
@@ -129,9 +178,9 @@ public struct Ed25519PublicKey:PublicKeyData {
     
     public func toData() -> Data {
         var data = Data()
-        data.append(contentsOf: [UInt8(Constants.curveOID.count)] + Constants.curveOID)
+        data.append(contentsOf: [UInt8(curve.oid.count)] + curve.oid)
         
-        let mpint = MPInt(integerData: Data(bytes: [Constants.prefixByte] + rawData.bytes))
+        let mpint = MPInt(integerData: Data(bytes: [curve.prefixByte] + rawData.bytes))
         
         data.append(contentsOf: mpint.lengthBytes)
         data.append(mpint.data)
@@ -139,3 +188,4 @@ public struct Ed25519PublicKey:PublicKeyData {
         return data
     }
 }
+

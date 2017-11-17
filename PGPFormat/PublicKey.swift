@@ -13,11 +13,13 @@ import Foundation
     Supported Public Key Algorithm Types
     Full list: https://tools.ietf.org/html/rfc4880#section-9.1
     + Ed25519: https://tools.ietf.org/html/draft-koch-eddsa-for-openpgp-00
+    + ECDSA
  */
 public enum PublicKeyAlgorithm:UInt8 {
     case rsaEncryptOrSign = 1
     case rsaEncryptOnly = 2
     case rsaSignOnly = 3
+    case ecdsa = 19
     case ed25519 = 22
     
     init(type:UInt8) throws {
@@ -107,8 +109,8 @@ public struct PublicKey:Packetable {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
             self.publicKeyData = try RSAPublicKey(mpintData: keyData)
             
-        case .ed25519:
-            self.publicKeyData = try Ed25519PublicKey(mpintData: keyData)
+        case .ed25519, .ecdsa:
+            self.publicKeyData = try ECPublicKey(mpintData: keyData)
         }
     }
     

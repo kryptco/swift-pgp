@@ -3,10 +3,10 @@ A pure<sup>1</sup> Swift library for parsing and creating PGP [RFC 4880](https:/
 
 > **1**. Except for SHA hash functions from CommonCrypto.
 
-# Created For Kryptonite 
-<a href="https://krypt.co"><img src="https://krypt.co/static/dist/img/kryptonite-logo-green-on-white.svg" width="200"/> </a> 
+# Created For Krypton Core
+<a href="https://krypt.co"><img src="https://krypt.co/static/dist/img/krypton_core_logo.svg" width="200"/> </a>
 
-This library was created for __Kryptonite__. 
+This library was created for __Krypton__. 
 For more information, check out [krypt.co](https://krypt.co).
 
 # Supported Features

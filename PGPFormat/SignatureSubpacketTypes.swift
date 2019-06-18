@@ -76,7 +76,7 @@ public struct SignatureCreated:SignatureSubpacketable {
     }
     
     public func toData() throws -> Data {
-        return Data(bytes: UInt32(date.timeIntervalSince1970).fourByteBigEndianBytes())
+        return Data(UInt32(date.timeIntervalSince1970).fourByteBigEndianBytes())
     }
 }
 
@@ -151,7 +151,7 @@ public struct SignatureKeyExpires:SignatureSubpacketable {
     }
     
     public func toData() throws -> Data {
-        return Data(bytes: UInt32(date.timeIntervalSince1970).fourByteBigEndianBytes())
+        return Data(UInt32(date.timeIntervalSince1970).fourByteBigEndianBytes())
     }
 }
 
@@ -232,7 +232,7 @@ public struct SignatureKeyFlags:SignatureSubpacketable, CustomDebugStringConvert
     }
     
     public func toData() throws -> Data {
-        var data = Data(bytes: flags.map({ $0.rawValue }))
+        var data = Data(flags.map({ $0.rawValue }))
         data.append(contentsOf: unknowns)
         
         return data

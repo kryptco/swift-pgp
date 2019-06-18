@@ -666,7 +666,7 @@ class PGPFormatTests: XCTestCase {
      */
     func testMPInt() {
         
-        var data = Data(bytes: [0x0E, 0xAD, 0xBE, 0xEF])
+        var data = Data([0x0E, 0xAD, 0xBE, 0xEF])
         var mpint = MPInt(integerData: data)
         
         XCTAssert(mpint.data.bytes == data.bytes, "mismatch bytes: \(mpint.data.bytes)")
@@ -674,7 +674,7 @@ class PGPFormatTests: XCTestCase {
         XCTAssert(mpint.lengthBytes == 28.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
 
         
-        data = Data(bytes: [0xDE, 0xAD, 0xBE, 0xEF])
+        data = Data([0xDE, 0xAD, 0xBE, 0xEF])
         mpint = MPInt(integerData: data)
         
         XCTAssert(mpint.data.bytes == data.bytes, "mismatch bytes: \(mpint.data.bytes)")
@@ -683,7 +683,7 @@ class PGPFormatTests: XCTestCase {
 
         
         // test leading zeros
-        data = Data(bytes: [0x00, 0xAD, 0xBE, 0xEF])
+        data = Data([0x00, 0xAD, 0xBE, 0xEF])
         mpint = MPInt(integerData: data)
         
         XCTAssert(mpint.data.bytes == [UInt8](data.bytes[1 ..< data.count]), "mismatch bytes: \(mpint.data.bytes)")
@@ -691,7 +691,7 @@ class PGPFormatTests: XCTestCase {
         XCTAssert(mpint.lengthBytes == 24.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
 
         
-        data = Data(bytes: [0x00, 0x00, 0x2E, 0xEF])
+        data = Data([0x00, 0x00, 0x2E, 0xEF])
         mpint = MPInt(integerData: data)
         
         XCTAssert(mpint.data.bytes == [UInt8](data.bytes[2 ..< data.count]), "mismatch bytes: \(mpint.data.bytes)")
@@ -699,7 +699,7 @@ class PGPFormatTests: XCTestCase {
         XCTAssert(mpint.lengthBytes == 14.twoByteBigEndianBytes(), "incorrect length bytes: \(mpint.lengthBytes)")
         
         // all 0's
-        data = Data(bytes: [0x00, 0x00, 0x00, 0x00])
+        data = Data([0x00, 0x00, 0x00, 0x00])
         mpint = MPInt(integerData: data)
         
         XCTAssert(mpint.data.bytes == [], "mismatch bytes: \(mpint.data.bytes)")
@@ -735,7 +735,7 @@ extension Data {
     static func random(size:Int) -> Data {
         var result = [UInt8](repeating: 0, count: size)
         let _ = SecRandomCopyBytes(kSecRandomDefault, size, &result)
-        return Data(bytes: result)
+        return Data(result)
     }
 }
 

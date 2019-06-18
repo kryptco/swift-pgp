@@ -50,7 +50,7 @@ public struct UserID:Packetable {
 
     
     public func toData() -> Data {
-        return Data(bytes: [UInt8](content.utf8))
+        return Data([UInt8](content.utf8))
     }
 
     mutating private func setNameAndEmail() {

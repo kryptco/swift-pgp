@@ -44,7 +44,7 @@ public enum SignatureSubpacketError:Error {
  */
 public extension Array where Element == SignatureSubpacket {
     
-    public init(data:Data) throws {
+    init(data:Data) throws {
         
         var packetStart = 0
         

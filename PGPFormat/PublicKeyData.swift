@@ -33,14 +33,14 @@ public struct RSAPublicKey:PublicKeyData{
         
         var start = 0
         
-        self.modulus = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
+        self.modulus = try MPInt(mpintData: Data(bytes[start ..< bytes.count]))
         start += modulus.byteLength
         
         guard bytes.count >= start else {
             throw DataError.tooShort(bytes.count)
         }
         
-        self.exponent = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count]))
+        self.exponent = try MPInt(mpintData: Data(bytes[start ..< bytes.count]))
     }
     
     public func toData() -> Data {
@@ -162,7 +162,7 @@ public struct ECPublicKey:PublicKeyData {
             throw DataError.tooShort(bytes.count)
         }
         
-        let mpintBytes = try MPInt(mpintData: Data(bytes: bytes[start ..< bytes.count])).data.bytes
+        let mpintBytes = try MPInt(mpintData: Data(bytes[start ..< bytes.count])).data.bytes
         
         guard mpintBytes.first == curve.prefixByte else {
             throw ParsingError.invalidOrMissingECCPrefixByte
@@ -172,7 +172,7 @@ public struct ECPublicKey:PublicKeyData {
             throw DataError.tooShort(mpintBytes.count)
         }
         
-        self.rawData = Data(bytes: mpintBytes[1 ..< mpintBytes.count])
+        self.rawData = Data(mpintBytes[1 ..< mpintBytes.count])
     }
     
     
@@ -180,7 +180,7 @@ public struct ECPublicKey:PublicKeyData {
         var data = Data()
         data.append(contentsOf: [UInt8(curve.oid.count)] + curve.oid)
         
-        let mpint = MPInt(integerData: Data(bytes: [curve.prefixByte] + rawData.bytes))
+        let mpint = MPInt(integerData: Data([curve.prefixByte] + rawData.bytes))
         
         data.append(contentsOf: mpint.lengthBytes)
         data.append(mpint.data)

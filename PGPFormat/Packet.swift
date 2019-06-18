@@ -39,7 +39,7 @@ public extension Array where Element == Packet {
     /** 
         Initialize a list of packets from a byte sequence
      */
-    public init(data:Data) throws {
+    init(data:Data) throws {
         
         var packetStart = 0
         var packets:[Packet] = []

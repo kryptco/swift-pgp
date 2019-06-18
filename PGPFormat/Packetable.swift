@@ -34,7 +34,7 @@ public extension Packetable {
     /**
         Convert a packetable to a packet
      */
-    public func toPacket() throws -> Packet {
+    func toPacket() throws -> Packet {
         let body = try self.toData()
         let header = try PacketHeader(tag: self.tag, packetLength: PacketLength(body: body.count))
         
@@ -53,7 +53,7 @@ public enum PacketableError:Error {
     Initialize a list of packetables from a byte sequence
  */
 public extension Array where Element == Packetable {
-    public init(data:Data) throws {
+    init(data:Data) throws {
         let packets = try [Packet](data: data)
         
         self = try packets.map {

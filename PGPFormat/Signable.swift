@@ -17,14 +17,14 @@ public protocol Signable {
 }
 
 public extension Signable {    
-    public func dataToHash() throws -> Data {
+    func dataToHash() throws -> Data {
         var dataToHash = try self.signableData()        
         try dataToHash.append(signature.dataToHash())
         
         return dataToHash
     }
     
-    public mutating func set(hash:Data, signedHash:[Data]) throws {
+    mutating func set(hash:Data, signedHash:[Data]) throws {
         try signature.set(hash: hash, signedHash: signedHash)
     }
     

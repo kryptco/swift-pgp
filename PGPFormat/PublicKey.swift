@@ -103,7 +103,7 @@ public struct PublicKey:Packetable {
         algorithm = try PublicKeyAlgorithm(type: bytes[5])
         
         // parse the key data
-        let keyData = Data(bytes: bytes[6 ..< bytes.count])
+        let keyData = Data(bytes[6 ..< bytes.count])
         
         switch algorithm {
         case .rsaSignOnly, .rsaEncryptOnly, .rsaEncryptOrSign:
@@ -163,7 +163,7 @@ public struct PublicKey:Packetable {
             throw ParsingError.invalidFinerprintLength(fingerprint.count)
         }
         
-        return Data(bytes: fingerprint.bytes[12 ..< 20])
+        return Data(fingerprint.bytes[12 ..< 20])
     }
 }
 

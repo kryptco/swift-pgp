@@ -19,7 +19,7 @@ public protocol SignatureSubpacketable {
 }
 
 public extension SignatureSubpacketable {
-    public func toSubpacket() throws -> SignatureSubpacket {
+    func toSubpacket() throws -> SignatureSubpacket {
         let body = try self.toData()
         let header = try SignatureSubpacketHeader(type: self.type, bodyLength: body.count)
         
@@ -37,7 +37,7 @@ public enum SignatureSubpacketableError:Error {
     of signature subpacketables
  */
 public extension Array where Element == SignatureSubpacket {
-    public func toSignatureSubpacketables() throws -> [SignatureSubpacketable] {
+    func toSignatureSubpacketables() throws -> [SignatureSubpacketable] {
         var subpacketables = [SignatureSubpacketable]()
         
         for packet in self {

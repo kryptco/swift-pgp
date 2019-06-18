@@ -70,7 +70,7 @@ public struct LiteralData:Packetable {
             throw DataError.tooShort(data.count)
 
         }
-        filename = Data(bytes: bytes[ptr ..< (ptr + filenameLength)])
+        filename = Data(bytes[ptr ..< (ptr + filenameLength)])
         ptr += filenameLength
         
         // date (1 ..< 5)
@@ -87,7 +87,7 @@ public struct LiteralData:Packetable {
             throw DataError.tooShort(data.count)
         }
 
-        contents = Data(bytes: [UInt8](bytes.suffix(from: ptr)))
+        contents = Data([UInt8](bytes.suffix(from: ptr)))
     }
     
     init(contents:Data, formatType:FormatType = .binary, filename:Data = Data(), date:Date = Date()) {

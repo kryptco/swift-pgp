@@ -126,7 +126,7 @@ public struct Signature:Packetable {
             throw DataError.tooShort(bytes.count)
         }
         
-        hashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + hashedDataLength)])).toSignatureSubpacketables()
+        hashedSubpacketables = try [SignatureSubpacket](data: Data(bytes[ptr ..< (ptr + hashedDataLength)])).toSignatureSubpacketables()
         
         ptr += hashedDataLength
 
@@ -142,7 +142,7 @@ public struct Signature:Packetable {
             throw DataError.tooShort(bytes.count)
         }
         
-        unhashedSubpacketables = try [SignatureSubpacket](data: Data(bytes: bytes[ptr ..< (ptr + unhashedDataLength)])).toSignatureSubpacketables()
+        unhashedSubpacketables = try [SignatureSubpacket](data: Data(bytes[ptr ..< (ptr + unhashedDataLength)])).toSignatureSubpacketables()
         ptr += unhashedDataLength
         
         
@@ -163,13 +163,13 @@ public struct Signature:Packetable {
         // signature MPI
         switch publicKeyAlgorithm {
         case .rsaEncryptOrSign, .rsaSignOnly:
-            let signatureMPInt = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            let signatureMPInt = try MPInt(mpintData: Data(bytes[ptr ..< bytes.count]))
             signature = [signatureMPInt.data]
             ptr += signatureMPInt.byteLength
             
         case .ed25519:
             // first point
-            let firstPointMPInt = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            let firstPointMPInt = try MPInt(mpintData: Data(bytes[ptr ..< bytes.count]))
 
             ptr += firstPointMPInt.byteLength
             
@@ -178,7 +178,7 @@ public struct Signature:Packetable {
                 throw DataError.tooShort(bytes.count)
             }
             
-            let secondPointMPint = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            let secondPointMPint = try MPInt(mpintData: Data(bytes[ptr ..< bytes.count]))
             
             ptr += secondPointMPint.byteLength
             
@@ -191,7 +191,7 @@ public struct Signature:Packetable {
         
         case .ecdsa:
             // first point
-            let firstPointMPInt = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            let firstPointMPInt = try MPInt(mpintData: Data(bytes[ptr ..< bytes.count]))
             
             ptr += firstPointMPInt.byteLength
             
@@ -200,7 +200,7 @@ public struct Signature:Packetable {
                 throw DataError.tooShort(bytes.count)
             }
             
-            let secondPointMPint = try MPInt(mpintData: Data(bytes: bytes[ptr ..< bytes.count]))
+            let secondPointMPint = try MPInt(mpintData: Data(bytes[ptr ..< bytes.count]))
             
             ptr += secondPointMPint.byteLength
             

@@ -60,7 +60,7 @@ public struct OnePassSignature:Packetable {
             throw DataError.tooShort(data.count)
         }
         
-        keyID = Data(bytes: bytes[ptr ..< ptr + 8])
+        keyID = Data(bytes[ptr ..< ptr + 8])
         ptr += 8
         
         guard data.count >= ptr + 1 else {

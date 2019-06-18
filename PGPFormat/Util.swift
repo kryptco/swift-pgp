@@ -39,7 +39,7 @@ public struct MPInt {
             startingIndex += 1
         }
         
-        self.data = Data(bytes: bytes[startingIndex ..< bytes.count])
+        self.data = Data(bytes[startingIndex ..< bytes.count])
     }
     
     /**
@@ -61,7 +61,7 @@ public struct MPInt {
             throw DataError.tooShort(bytes.count)
         }
         
-        data = Data(bytes: bytes[ptr ..< (ptr + length)])
+        data = Data(bytes[ptr ..< (ptr + length)])
     }
     
     public var byteLength:Int {
@@ -89,14 +89,14 @@ extension Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA512_DIGEST_LENGTH))
         CC_SHA512(&dataBytes, CC_LONG(self.count), &hash)
         
-        return Data(bytes: hash)
+        return Data(hash)
     }
     var SHA384:Data {
         var dataBytes = self.bytes
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA384_DIGEST_LENGTH))
         CC_SHA384(&dataBytes, CC_LONG(self.count), &hash)
         
-        return Data(bytes: hash)
+        return Data(hash)
     }
 
     var SHA256:Data {
@@ -104,7 +104,7 @@ extension Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
         CC_SHA256(&dataBytes, CC_LONG(self.count), &hash)
         
-        return Data(bytes: hash)
+        return Data(hash)
     }
     
     var SHA224:Data {
@@ -112,7 +112,7 @@ extension Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA224_DIGEST_LENGTH))
         CC_SHA224(&dataBytes, CC_LONG(self.count), &hash)
         
-        return Data(bytes: hash)
+        return Data(hash)
     }
 
     var SHA1:Data {
@@ -120,7 +120,7 @@ extension Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
         CC_SHA1(&dataBytes, CC_LONG(self.count), &hash)
         
-        return Data(bytes: hash)
+        return Data(hash)
     }
 }
 
@@ -153,6 +153,11 @@ extension Data {
         return firstByteBits + remainingBytesBits
     }
 
+    internal var bytes:[UInt8] {
+        return self.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            [UInt8](UnsafeRawBufferPointer(start: bytes.baseAddress, count: self.count))
+        }
+    }
     
     var crc24Checksum:Data {
         var dataBytes = self.bytes
@@ -162,7 +167,7 @@ extension Data {
             return Data()
         }
         
-        return Data(bytes: UInt32(checksum).threeByteBigEndianBytes())
+        return Data(UInt32(checksum).threeByteBigEndianBytes())
     }
     
     
@@ -222,8 +227,8 @@ extension Data {
     }
     
     var hex:String {
-        let bytes = self.withUnsafeBytes {
-            [UInt8](UnsafeBufferPointer(start: $0, count: self.count))
+        let bytes = self.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            [UInt8](UnsafeRawBufferPointer(start: bytes.baseAddress, count: self.count))
         }
         
         var hexString = ""
@@ -234,10 +239,7 @@ extension Data {
     }
     
     var hexPretty:String {
-        let bytes = self.withUnsafeBytes {
-            [UInt8](UnsafeBufferPointer(start: $0, count: self.count))
-        }
-        
+        let bytes = self.bytes
         
         var hex = ""
         for i in 0..<self.count {
@@ -245,12 +247,6 @@ extension Data {
         }
         
         return hex.uppercased()
-    }
-    
-    var bytes:[UInt8] {
-        return self.withUnsafeBytes {
-            [UInt8](UnsafeBufferPointer(start: $0, count: self.count))
-        }
     }
 }
 
